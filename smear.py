@@ -97,15 +97,20 @@ class JustGreedyEnough(SmearGameLogic):
             for idx in my_trump:
                 if my_hand[idx].gt(card_to_beat.value, ranks=POKER_RANKS):
                     lowest_index = idx
-        else:
-            if card_to_beat.suit == lead_suit:
+        elif card_to_beat.suit == lead_suit:
+            my_trump = utils.get_trump_indices(trump, my_hand)
+            if len(my_trump) != 0:
+                # Card to beat isn't trump, but I have trump. Play my lowest trump
+                lowest_index = my_trump[0]
+            else:
                 matching_idxs = my_hand.find(card_to_beat.suit, sort=True, ranks=POKER_RANKS)
                 for idx in matching_idxs:
+                    # Play the lowest card in the matching suit that will beat the card to beat
                     if my_hand[idx].gt(card_to_beat.value, ranks=POKER_RANKS):
                         lowest_index = idx
-            else:
-                # Card to beat isn't trump and isn't the lead suit, this doesn't make sense
-                print "Error: card to beat seems incorrect: {}".format(card_to_beat)
+        else:
+            # Card to beat isn't trump and isn't the lead suit, this doesn't make sense
+            print "Error: card to beat seems incorrect: {}".format(card_to_beat)
         return lowest_index
         
     def find_strongest_card(self, my_hand, trump):
@@ -127,7 +132,7 @@ class JustGreedyEnough(SmearGameLogic):
         if len(indices) == 0:
             indices = range(0, len(my_hand))
         for idx in indices:
-            if utils.is_trump(my_hand[idx], trump):
+            if utils.is_trump(my_hand[idx], trump) and lowest_trump_index == None:
                 lowest_trump_index = idx
             else:
                 lowest_index = idx
@@ -283,17 +288,46 @@ class Trick:
 
     def is_new_card_higher(self, card):
         is_higher = False
-        if card.suit == self.current_winning_card.suit:
+        if utils.is_trump(self.current_winning_card, self.trump):
+            # Current winning card is trump
+            if utils.is_trump(card, self.trump):
+                # New card is also trump
+                if card.suit == self.current_winning_card.suit:
+                    # Neither are Jicks, just compare
+                    is_higher = POKER_RANKS["values"][card.value] > POKER_RANKS["values"][self.current_winning_card.value]
+                    if self.debug:
+                        print "Both cards are trump, {} is higher than {}".format(str(card) if is_higher else str(self.current_winning_card), str(self.current_winning_card) if is_higher else str(card))
+                else:
+                    # One of the cards is the jick
+                    if card.suit != self.trump:
+                        # The card is a jick, if the current_winning_card is a Jack or higher it wins
+                        is_higher = not POKER_RANKS["values"][self.current_winning_card.value] > POKER_RANKS["values"]["10"]
+                        if self.debug:
+                            print "{} is jick and {} higher than {}".format(str(card), "is" if is_higher else "is not", str(self.current_winning_card))
+                    else:
+                        # The current_winning_card is a jick
+                        is_higher = POKER_RANKS["values"][card.value] > POKER_RANKS["values"]["10"]
+                        if self.debug:
+                            print "Both cards are trump (current_winning is jick), {} is higher than {}".format(str(card) if is_higher else str(self.current_winning_card), str(self.current_winning_card) if is_higher else str(card))
+            else:
+                # New card is not trump, but current is
+                if self.debug:
+                    print "{} is not trump, and current winning card {} is".format(str(card), str(self.current_winning_card))
+                is_higher = False
+        elif utils.is_trump(card, self.trump):
+            if self.debug:
+                print "{} is trump, and current winning card {} is not".format(str(card), str(self.current_winning_card))
+            is_higher = True
+        elif card.suit == self.current_winning_card.suit:
+            # Both are not trump, but are the same suit
             is_higher = POKER_RANKS["values"][card.value] > POKER_RANKS["values"][self.current_winning_card.value]
             if self.debug:
                 print "Suit is same ({}), {} is higher than {}".format(card.suit, str(card) if is_higher else str(self.current_winning_card), str(self.current_winning_card) if is_higher else str(card))
         else:
-            is_higher = card.suit == self.trump
+            # card is a different suit, and not trump, so is not higher
+            is_higher = False
             if self.debug:
-                if is_higher:
-                    print "Suit is different, and {} is trump".format(str(card))
-                else:
-                    print "Suit is different, {} was unable to follow suit".format(str(card))
+                print "Suit is different, {} was unable to follow suit".format(str(card))
 
         return is_higher
 
@@ -415,6 +449,12 @@ class SmearHandManager:
         self.scores[current_low_id] += 1
         if self.debug:
             print "{} won low with a {}".format(self.players[current_low_id].name, current_low)
+        # Check to see if bidder was set
+        if self.scores[self.current_hand.bidder] < self.current_hand.bid:
+            if self.debug:
+                print "{} bid {} and only got {}: is set!".format(self.players[self.current_hand.bidder].name, self.current_hand.bid, self.scores[self.current_hand.bidder])
+            self.scores[self.current_hand.bidder] = -self.current_hand.bid
+
         return self.scores
 
     def get_players(self):
@@ -475,7 +515,7 @@ class SmearHandManager:
         self.current_hand.prepare_for_next_trick()
         self.current_hand.first_player = winner_id
         if self.debug:
-            print "{} won {}".format(self.players[winner_id].name, " ".join(x.abbrev for x in cards))
+            print "{} won {}\n".format(self.players[winner_id].name, " ".join(x.abbrev for x in cards))
 
 
 class SmearGameManager:
@@ -533,16 +573,24 @@ class SmearGameManager:
             msg += "{} finished with {} points".format(self.players[i].name, self.scores[i])
             msg += '\n'
         return msg
+    
+    def format_scores(self, scores):
+        msg = ""
+        for i in range(0, self.num_players):
+            msg += "{}: {}".format(self.players[i].name, scores[i] if len(scores) != 0 else 0)
+            if i < self.num_players - 1:
+                msg += "\n"
+        return msg
 
 # TODO: Write better logic for winning by two and bidder-goes-out
     def update_scores(self, hand_scores):
         if self.debug:
-            print "Current score: {}".format(str(self.scores))
-            print "Score of last hand: {}".format(str(hand_scores))
+            print "Current score:\n{}".format(self.format_scores(self.scores))
+            print "Score of last hand:\n{}".format(self.format_scores(hand_scores))
         new_scores = {x: self.scores.get(x, 0) + hand_scores.get(x, 0) for x in set(self.scores).union(hand_scores)}
         self.scores = new_scores
         if self.debug:
-            print "New scores: {}".format(str(self.scores))
+            print "New scores:\n{}".format(self.format_scores(self.scores))
         if max(self.scores.values()) >= self.score_to_play_to:
             self.winning_score = max(self.scores.values())
             self.game_over = True
@@ -551,8 +599,6 @@ class SmearGameManager:
 
     def __str__(self):
         msg = ""
-        for i in range(0, self.num_players):
-            msg += str(self.players[i]) + "\n"
         return msg
 
     def play_hand(self):
