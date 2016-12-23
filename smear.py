@@ -148,11 +148,15 @@ class Trick:
         if card.suit == self.current_winning_card.suit:
             is_higher = POKER_RANKS["values"][card.value] > POKER_RANKS["values"][self.current_winning_card.value]
             if self.debug:
-                print "Suit is same ({}), {} is higher than {} is {}".format(card.suit, str(card), str(self.current_winning_card), is_higher)
+                print "Suit is same ({}), {} is higher than {}".format(card.suit, str(card) if is_higher else str(self.current_winning_card), str(self.current_winning_card) if is_higher else str(card))
         else:
             is_higher = card.suit == self.trump
-            if is_higher and self.debug:
-                print "Suit is different, and {} is trump".format(str(card))
+            if self.debug:
+                if is_higher:
+                    print "Suit is different, and {} is trump".format(str(card))
+                else:
+                    print "Suit is different, {} was unable to follow suit".format(str(card))
+
         return is_higher
 
     def add_card(self, player_id, card):
@@ -300,9 +304,9 @@ class SmearHandManager:
         current_player = self.current_hand.first_player
         for i in range(0, self.num_players):
             card = self.players[current_player].play_card(self.current_hand)
-            self.current_hand.add_card(current_player, card)
             if self.debug:
                 print "{}: {}".format(self.players[current_player].name, str(card))
+            self.current_hand.add_card(current_player, card)
             current_player = self.next_player_id(current_player)
         # Give all cards to winner
         cards = self.current_hand.current_trick.get_all_cards_as_stack()
@@ -311,7 +315,7 @@ class SmearHandManager:
         self.current_hand.prepare_for_next_trick()
         self.current_hand.first_player = winner_id
         if self.debug:
-            print "{} won {}".format(self.players[winner_id].name, str(cards))
+            print "{} won {}".format(self.players[winner_id].name, " ".join(x.abbrev for x in cards))
 
 
 class SmearGameManager:
