@@ -85,11 +85,23 @@ class Player:
         return msg
 
     # Returns a single card
-    # Will need to be updated with logic
+    # TODO: Will need to be updated with logic
     def play_card(self, current_hand):
         if self.hand.size == 0:
             return None
-        card_to_play = self.hand.deal(1)[0]
+        
+        pool = self.hand.find(current_hand.trump, sort=True, ranks=POKER_RANKS)
+        if len(pool) == 0 and len(current_hand.current_trick.cards.values()) != 0:
+            # No trump, and someone else lead this trick. We need to follow suit
+            pool = self.hand.find(current_hand.current_trick.lead_suit, sort=True, ranks=POKER_RANKS)
+        if len(pool) == 0:
+            # Can't follow suit, just pick from anything
+            self.hand.sort(ranks=POKER_RANKS)
+            self.hand.reverse()
+            pool=[0]
+
+        card_to_play = self.hand[pool[-1]]
+        del self.hand[pool[-1]]
         self.card_count.remove_card(card_to_play)
         return card_to_play
 
@@ -149,10 +161,9 @@ class Trick:
             self.lead_suit = card.suit
             self.current_winning_card = card
             self.current_winner_id = player_id
-        else:
-            if self.is_new_card_higher(card):
-                self.current_winning_card = card
-                self.current_winner_id = player_id
+        elif self.is_new_card_higher(card):
+            self.current_winning_card = card
+            self.current_winner_id = player_id
         self.cards[player_id] = card
 
     def get_winner_id(self):
@@ -272,7 +283,7 @@ class SmearHandManager:
             current_bidder = self.next_player_id(current_bidder)
             bid = self.players[current_bidder].declare_bid(self.current_hand.bid, force_two=(current_bidder==dealer_id))
             if self.debug:
-                print "{} bid {}".format(self.players[current_bidder].name, bid)
+                print "{} bid {} and has {}".format(self.players[current_bidder].name, bid, str(self.players[current_bidder].hand))
             if bid > self.current_hand.bid:
                 self.current_hand.bid = bid
                 self.current_hand.bidder = current_bidder
@@ -290,9 +301,9 @@ class SmearHandManager:
         for i in range(0, self.num_players):
             card = self.players[current_player].play_card(self.current_hand)
             self.current_hand.add_card(current_player, card)
-            current_player = self.next_player_id(current_player)
             if self.debug:
-                print "{}: {}".format(self.players[i].name, str(card))
+                print "{}: {}".format(self.players[current_player].name, str(card))
+            current_player = self.next_player_id(current_player)
         # Give all cards to winner
         cards = self.current_hand.current_trick.get_all_cards_as_stack()
         winner_id = self.current_hand.current_trick.get_winner_id()
