@@ -39,6 +39,120 @@ class CardCount:
         return self.counts
 
 
+class SmearUtils():
+    def __init__(self):
+        self.jack_hearts = pydealer.Card(value="Jack", suit="Hearts")
+        self.jack_spades = pydealer.Card(value="Jack", suit="Spades")
+        self.jack_diamonds = pydealer.Card(value="Jack", suit="Diamonds")
+        self.jack_clubs = pydealer.Card(value="Jack", suit="Clubs")
+
+    def is_trump(self, card, trump):
+        card_is_trump = False
+        if card.suit == trump:
+            return True
+        elif trump == "Spades":
+            return self.jack_clubs == card
+        elif trump == "Clubs":
+            return self.jack_spades == card
+        elif trump == "Hearts":
+            return self.jack_diamonds == card
+        elif trump == "Diamonds":
+            return self.jack_hearts == card
+        return card_is_trump
+
+    # Sorted from smallest to largest
+    def get_trump_indices(self, trump, stack):
+        trump_indices = stack.find(trump, sort=True, ranks=POKER_RANKS)
+        if trump == "Spades":
+            if self.jack_clubs in stack:
+                trump_indices += stack.find(self.jack_clubs)
+        elif trump == "Clubs":
+            if self.jack_spades in stack:
+                trump_indices += stack.find(self.jack_spades)
+        elif trump == "Hearts":
+            if self.jack_diamonds in stack:
+                trump_indices += stack.find(self.jack_diamonds)
+        elif trump == "Diamonds":
+            if self.jack_hearts in stack:
+                trump_indices += stack.find(self.jack_hearts)
+        return trump_indices
+
+
+utils = SmearUtils()
+        
+class SmearGameLogic:
+    def choose_card(self, current_hand, my_hand):
+        pass
+
+# TODO: write more and better versions of these
+class JustGreedyEnough(SmearGameLogic):
+    def __init__(self, debug=False):
+        self.debug = debug
+
+    def find_lowest_card_index_to_beat(self, my_hand, card_to_beat, lead_suit, trump):
+        lowest_index = None
+        if utils.is_trump(card_to_beat, trump):
+            # Card to beat is trump, see if I have a higher trump
+            my_trump = utils.get_trump_indices(trump, my_hand)
+            for idx in my_trump:
+                if my_hand[idx].gt(card_to_beat.value, ranks=POKER_RANKS):
+                    lowest_index = idx
+        else:
+            if card_to_beat.suit == lead_suit:
+                matching_idxs = my_hand.find(card_to_beat.suit, sort=True, ranks=POKER_RANKS)
+                for idx in matching_idxs:
+                    if my_hand[idx].gt(card_to_beat.value, ranks=POKER_RANKS):
+                        lowest_index = idx
+            else:
+                # Card to beat isn't trump and isn't the lead suit, this doesn't make sense
+                print "Error: card to beat seems incorrect: {}".format(card_to_beat)
+        return lowest_index
+        
+    def find_strongest_card(self, my_hand, trump):
+        my_trump = utils.get_trump_indices(trump, my_hand)
+        strongest_idx = None
+        if len(my_trump) != 0:
+            strongest_idx = my_trump[-1]
+        else:
+            my_hand.sort(ranks=POKER_RANKS)
+            strongest_idx = len(my_hand) - 1
+        return strongest_idx
+
+    def find_lowest_card_index(self, my_hand, lead_suit, trump):
+        lowest_index = None
+        lowest_trump_index = None
+        # First try following suit
+        my_hand.sort(ranks=POKER_RANKS)
+        indices = my_hand.find(lead_suit, sort=True, ranks=POKER_RANKS)
+        if len(indices) == 0:
+            indices = range(0, len(my_hand))
+        for idx in indices:
+            if utils.is_trump(my_hand[idx], trump):
+                lowest_trump_index = idx
+            else:
+                lowest_index = idx
+                break
+        if lowest_index == None:
+            lowest_index = lowest_trump_index
+        return lowest_index
+
+    def choose_card(self, current_hand, my_hand):
+        idx = 0
+        if len(current_hand.current_trick.cards.values()) == 0:
+            # I'm the first player. Choose my strongest card
+            idx = self.find_strongest_card(my_hand, current_hand.trump)
+        else:
+            # Otherwise choose the lowest card to beat the current highest card
+            idx = self.find_lowest_card_index_to_beat(my_hand, current_hand.current_trick.current_winning_card, current_hand.current_trick.lead_suit, current_hand.trump)
+            if idx == None:
+                # If we can't beat it, then just play the lowest card, following suit as needed
+                idx = self.find_lowest_card_index(my_hand, current_hand.current_trick.lead_suit, current_hand.trump)
+
+        card_to_play = my_hand[idx]
+        del my_hand[idx]
+        return card_to_play
+
+
 class Player:
     def __init__(self, player_id, initial_cards=None):
         self.reset()
@@ -49,6 +163,7 @@ class Player:
         self.name = "player{}".format(player_id)
         self.bid = 0
         self.is_bidder = False
+        self.game_logic = JustGreedyEnough()
 
     def reset(self):
         self.hand = pydealer.Stack()
@@ -85,23 +200,10 @@ class Player:
         return msg
 
     # Returns a single card
-    # TODO: Will need to be updated with logic
     def play_card(self, current_hand):
         if self.hand.size == 0:
             return None
-        
-        pool = self.hand.find(current_hand.trump, sort=True, ranks=POKER_RANKS)
-        if len(pool) == 0 and len(current_hand.current_trick.cards.values()) != 0:
-            # No trump, and someone else lead this trick. We need to follow suit
-            pool = self.hand.find(current_hand.current_trick.lead_suit, sort=True, ranks=POKER_RANKS)
-        if len(pool) == 0:
-            # Can't follow suit, just pick from anything
-            self.hand.sort(ranks=POKER_RANKS)
-            self.hand.reverse()
-            pool=[0]
-
-        card_to_play = self.hand[pool[-1]]
-        del self.hand[pool[-1]]
+        card_to_play = self.game_logic.choose_card(current_hand, self.hand)
         self.card_count.remove_card(card_to_play)
         return card_to_play
 
@@ -110,19 +212,55 @@ class Player:
 
     def declare_bid(self, other_bids, force_two=False):
         # TODO: this
+        self.hand.sort()
         self.bid = 2
         return self.bid
 
     def get_trump(self):
         # TODO: this
-        return "Spades"
+        self.hand.sort()
+        return self.hand[-1].suit
 
     def calculate_game_score(self):
-        # TODO: this
-        return self.pile.size
+        game_score = 0
+        for card in self.pile:
+            if card.value == "10":
+                game_score += 10
+            if card.value == "Ace":
+                game_score += 4
+            elif card.value == "King":
+                game_score += 3
+            elif card.value == "Queen":
+                game_score += 2
+            elif card.value == "Jack":
+                game_score += 1
+        return game_score
 
-    def calculate_score(self):
+    def get_high_trump_card(self, trump):
+        high_trump = None
+        my_trump = utils.get_trump_indices(trump, self.pile)
+        if len(my_trump) != 0:
+            high_trump = self.pile[my_trump[-1]]
+        return high_trump
+
+    def get_low_trump_card(self, trump):
+        low_trump = None
+        my_trump = utils.get_trump_indices(trump, self.pile)
+        if len(my_trump) != 0:
+            low_trump = self.pile[my_trump[0]]
+        return low_trump
+
+    def get_jacks_and_jicks_count(self, trump):
+        my_trump = utils.get_trump_indices(trump, self.pile)
+        points = 0
+        for idx in my_trump:
+            if self.pile[idx].value == "Jack":
+                points += 1
+        return points
+
+    def calculate_score(self, trump):
         # TODO: this
+        my_trump = utils.get_trump_indices(trump, self.pile)
         return len(self.pile.find('Ace'))
 
     def add_cards_to_pile(self, cards):
@@ -244,6 +382,10 @@ class SmearHandManager:
         self.scores = {}
         current_winner_ids = []
         current_winning_score = 0
+        current_high_id = 0
+        current_high = None
+        current_low_id = 0
+        current_low = None
         for i in range(0, self.num_players):
             game_score = self.players[i].calculate_game_score()
             if current_winning_score < game_score:
@@ -251,10 +393,28 @@ class SmearHandManager:
                 current_winner_ids = [ i ]
             elif current_winning_score == game_score:
                 current_winner_ids.append(i)
-            self.scores[i] = self.players[i].calculate_score()
+            high = self.players[i].get_high_trump_card(self.current_hand.trump)
+            if (not high == None) and (current_high == None or current_high.lt(high.value, ranks=POKER_RANKS)):
+                current_high = high
+                current_high_id = i
+            low = self.players[i].get_low_trump_card(self.current_hand.trump)
+            if (not low == None) and (current_low == None or current_low.gt(low.value, ranks=POKER_RANKS)):
+                current_low = low
+                current_low_id = i
+            self.scores[i] = self.players[i].get_jacks_and_jicks_count(self.current_hand.trump)
         # No ties for game, there is just no winner then
         if len(current_winner_ids) == 1:
             self.scores[current_winner_ids[0]] += 1
+            if self.debug:
+                print "{} won game with {} points".format(self.players[current_winner_ids[0]].name, current_winning_score)
+        elif self.debug:
+            print "No one won game, there was a tie at {} points between {}".format(current_winning_score, ", ".join(self.players[x].name for x in current_winner_ids))
+        self.scores[current_high_id] += 1
+        if self.debug:
+            print "{} won high with a {}".format(self.players[current_high_id].name, current_high)
+        self.scores[current_low_id] += 1
+        if self.debug:
+            print "{} won low with a {}".format(self.players[current_low_id].name, current_low)
         return self.scores
 
     def get_players(self):
@@ -287,7 +447,7 @@ class SmearHandManager:
             current_bidder = self.next_player_id(current_bidder)
             bid = self.players[current_bidder].declare_bid(self.current_hand.bid, force_two=(current_bidder==dealer_id))
             if self.debug:
-                print "{} bid {} and has {}".format(self.players[current_bidder].name, bid, str(self.players[current_bidder].hand))
+                print "{} bid {} and has {}".format(self.players[current_bidder].name, bid, " ".join(x.abbrev for x in self.players[current_bidder].hand))
             if bid > self.current_hand.bid:
                 self.current_hand.bid = bid
                 self.current_hand.bidder = current_bidder
@@ -407,10 +567,12 @@ class SmearGameManager:
 class SmearSimulator:
     def __init__(self, debug=False):
         self.debug = debug
-        self.smear = SmearGameManager(num_players=2, cards_to_deal=6, debug=debug)
+        self.smear = SmearGameManager(num_players=3, cards_to_deal=6, debug=debug)
         #self.smear_stats = SmearStats()
 
     def play_game(self):
+        if self.debug:
+            print "\n\n Starting game \n"
         self.smear.reset_game()
         #self.smear_stats.add_new_game()
         #for player in self.smear.get_players():
