@@ -19,7 +19,7 @@ class Trick:
         is_higher = False
         if utils.is_trump(self.current_winning_card, self.trump) or utils.is_trump(card, self.trump):
             # At least one of the cards is trump, compare to new card
-            is_higher = not utils.is_less_than(card, self.current_winning_card, self.trump):
+            is_higher = not utils.is_less_than(card, self.current_winning_card, self.trump)
             if self.debug:
                 print "At least one card is trump, {} is higher than {}".format(str(card) if is_higher else str(self.current_winning_card), str(self.current_winning_card) if is_higher else str(card))
         elif card.suit == self.current_winning_card.suit:
