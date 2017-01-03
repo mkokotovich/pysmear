@@ -41,6 +41,8 @@ class SmearHandManager:
         self.reset_players()
         self.current_hand = SmearHand(self.num_players, debug)
         self.scores = {}
+        self.current_low_id = 0
+        self.current_low = None
         self.debug = debug
 
     def reset_players(self):
@@ -59,6 +61,8 @@ class SmearHandManager:
         self.deal_new_deck()
         self.current_hand = SmearHand(self.num_players, self.debug)
         self.scores = {}
+        self.current_low_id = 0
+        self.current_low = None
 
     def is_hand_over(self):
         return not self.players[0].has_cards()
@@ -72,8 +76,6 @@ class SmearHandManager:
         current_winning_score = 0
         current_high_id = 0
         current_high = None
-        current_low_id = 0
-        current_low = None
         for i in range(0, self.num_players):
             game_score = self.players[i].calculate_game_score()
             if current_winning_score < game_score:
@@ -82,13 +84,9 @@ class SmearHandManager:
             elif current_winning_score == game_score:
                 current_winner_ids.append(i)
             high = self.players[i].get_high_trump_card(self.current_hand.trump)
-            if (not high == None) and (current_high == None or current_high.lt(high.value, ranks=POKER_RANKS)):
+            if (not high == None) and (current_high == None or utils.is_less_than(current_high, high, self.current_hand.trump)):
                 current_high = high
                 current_high_id = i
-            low = self.players[i].get_low_trump_card(self.current_hand.trump)
-            if (not low == None) and (current_low == None or current_low.gt(low.value, ranks=POKER_RANKS)):
-                current_low = low
-                current_low_id = i
             self.scores[i] = self.players[i].get_jacks_and_jicks_count(self.current_hand.trump)
         # No ties for game, there is just no winner then
         if len(current_winner_ids) == 1:
@@ -100,9 +98,9 @@ class SmearHandManager:
         self.scores[current_high_id] += 1
         if self.debug:
             print "{} won high with a {}".format(self.players[current_high_id].name, current_high)
-        self.scores[current_low_id] += 1
+        self.scores[self.current_low_id] += 1
         if self.debug:
-            print "{} won low with a {}".format(self.players[current_low_id].name, current_low)
+            print "{} won low with a {}".format(self.players[self.current_low_id].name, self.current_low)
         # Check to see if bidder was set
         if self.scores[self.current_hand.bidder] < self.current_hand.bid:
             if self.debug:
@@ -155,10 +153,17 @@ class SmearHandManager:
         if self.debug:
             print "{} picks {} to be trump".format(self.players[self.current_hand.bidder].name, self.current_hand.trump)
 
+    def update_low_if_needed(self, card, player_id):
+        if utils.is_trump(card, self.current_hand.trump) and (self.current_low == None or utils.is_less_than(card, self.current_low, self.current_hand.trump)):
+            self.current_low = card
+            self.current_low_id = player_id
+
     def play_trick(self):
         current_player = self.current_hand.first_player
         for i in range(0, self.num_players):
             card = self.players[current_player].play_card(self.current_hand)
+            # Because you don't need to take low home to get the point
+            self.update_low_if_needed(card, current_player)
             if self.debug:
                 print "{}: {}".format(self.players[current_player].name, str(card))
             self.current_hand.add_card(current_player, card)

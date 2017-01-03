@@ -13,7 +13,11 @@ class SmearUtils():
     @staticmethod
     def is_less_than(card_lhs, card_rhs, trump):
         less_than = False
-        if SmearUtils.is_trump(card_lhs, trump) and not SmearUtils.is_trump(card_rhs, trump):
+        if card_lhs == None:
+            less_than = True
+        elif card_rhs == None:
+            less_than = False
+        elif SmearUtils.is_trump(card_lhs, trump) and not SmearUtils.is_trump(card_rhs, trump):
             # lhs is trump and rhs isn't, return false
             less_than = False
         elif not SmearUtils.is_trump(card_lhs, trump) and SmearUtils.is_trump(card_rhs, trump):
@@ -26,7 +30,7 @@ class SmearUtils():
                 less_than = POKER_RANKS["values"][card_lhs.value] < POKER_RANKS["values"][card_rhs.value]
             else:
                 # One of the cards is the jick
-                if card_lhs.suit != self.trump:
+                if card_lhs.suit != trump:
                     # card_lhs is a jick, lhs is less than rhs if rhs is greater than or equal to a jack
                     less_than = POKER_RANKS["values"][card_rhs.value] >= POKER_RANKS["values"]["Jack"]
                 else:
@@ -36,6 +40,7 @@ class SmearUtils():
             # Neither are trump, just compare values (although this isn't how tricks are taken)
             print "Warning, comparing cards with different suits"
             less_than = POKER_RANKS["values"][card_lhs.value] < POKER_RANKS["values"][card_rhs.value]
+        return less_than
 
 
     @staticmethod
