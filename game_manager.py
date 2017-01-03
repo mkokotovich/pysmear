@@ -91,9 +91,15 @@ class SmearGameManager:
 
     def play_hand(self):
         self.current_hand.reset_for_next_hand()
-        self.current_hand.get_bids(self.next_dealer())
-        self.current_hand.reveal_trump()
-        while not self.current_hand.is_hand_over():
-            self.current_hand.play_trick()
-        self.update_scores(self.current_hand.get_scores())
-
+        forced_two_set = self.current_hand.get_bids(self.next_dealer())
+        if forced_two_set:
+            # Forced set, dealer get_scores() will return appropriately
+            if self.debug:
+                print "Dealer ({}) was forced to take a two set".format(self.players[self.dealer].name)
+        else:
+            # Play hand
+            self.current_hand.reveal_trump()
+            while not self.current_hand.is_hand_over():
+                self.current_hand.play_trick()
+        # Update scores
+        self.update_scores(self.current_hand.get_scores(self.dealer))

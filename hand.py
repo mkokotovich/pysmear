@@ -43,6 +43,7 @@ class SmearHandManager:
         self.scores = {}
         self.current_low_id = 0
         self.current_low = None
+        self.forced_two_set = False
         self.debug = debug
 
     def reset_players(self):
@@ -63,11 +64,19 @@ class SmearHandManager:
         self.scores = {}
         self.current_low_id = 0
         self.current_low = None
+        self.forced_two_set = False
 
     def is_hand_over(self):
         return not self.players[0].has_cards()
 
-    def get_scores(self):
+    def get_scores(self, dealer_id):
+        if self.forced_two_set:
+            self.scores = {}
+            for i in range(0, self.num_players):
+                self.scores[i] = 0
+            self.scores[dealer_id] = -2
+            return self.scores
+
         if not self.is_hand_over():
             print "Hand isn't over yet"
             return None
@@ -106,6 +115,9 @@ class SmearHandManager:
             if self.debug:
                 print "{} bid {} and only got {}: is set!".format(self.players[self.current_hand.bidder].name, self.current_hand.bid, self.scores[self.current_hand.bidder])
             self.scores[self.current_hand.bidder] = -self.current_hand.bid
+        else:
+            if self.debug:
+                print "{} got their bid of {} with {} points".format(self.players[self.current_hand.bidder].name, self.current_hand.bid, self.scores[self.current_hand.bidder])
 
         return self.scores
 
@@ -130,7 +142,6 @@ class SmearHandManager:
             next_id = 0
         return next_id
 
-    # TODO: handle forced two set
     def get_bids(self, dealer_id):
         self.current_hand.bid = 0
         self.current_hand.bidder = 0
@@ -139,14 +150,26 @@ class SmearHandManager:
         for i in range(0, self.num_players):
             current_bidder = self.next_player_id(current_bidder)
             bid = self.players[current_bidder].declare_bid(self.current_hand, force_two=(current_bidder==dealer_id))
+            if bid == 1:
+                print "Illegal bid of 1, resetting to 0"
+                bid = 0
+            elif bid > 5:
+                print "Illegal bid of > 5 ({}) resetting to 5".format(bid)
+                bid = 5
             if self.debug:
                 print "{} bid {} and has {}".format(self.players[current_bidder].name, bid, " ".join(x.abbrev for x in self.players[current_bidder].hand))
             if bid > self.current_hand.bid:
                 self.current_hand.bid = bid
                 self.current_hand.bidder = current_bidder
+        if bid == 0:
+            # No one bid, the dealer takes a two set
+            self.forced_two_set = True
         self.current_hand.first_player = self.current_hand.bidder
-        if self.debug:
+        if self.debug and not self.forced_two_set:
             print "{} has the highest bid of {}".format(self.players[self.current_hand.bidder].name, self.current_hand.bid)
+        if self.debug and self.forced_two_set:
+            print "{} was forced to take a two set".format(self.players[dealer_id].name)
+        return self.forced_two_set
 
     def reveal_trump(self):
         self.current_hand.set_trump(self.players[self.current_hand.bidder].get_trump())
