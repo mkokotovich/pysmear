@@ -1,16 +1,7 @@
 # Simulator for the card game smear
 
-import pydealer
 import sys
-from pydealer.const import POKER_RANKS
-from bidding_logic import *
-from playing_logic import *
-from player import Player
-from trick import Trick
-from hand import *
 from game_manager import SmearGameManager
-
-from smear_utils import SmearUtils as utils
 #from stats import SmearStats
 
 
