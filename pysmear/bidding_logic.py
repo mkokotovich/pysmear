@@ -140,8 +140,10 @@ class BasicBidding(SmearBiddingLogic):
                 bid, bid_trump = tmp_bid, suit
 
         if bid < 2:
-            if current_hand.bid < 2 and force_two and bid > 1:
+            if current_hand.bid < 2 and force_two and bid > 0.3:
                 # Go for it, otherwise we get set
+                if self.debug:
+                    print "Forced to bid two in order to avoid an automatic set"
                 bid = 2
             else:
                 bid = 0

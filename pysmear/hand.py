@@ -161,7 +161,7 @@ class SmearHandManager:
             if bid > self.current_hand.bid:
                 self.current_hand.bid = bid
                 self.current_hand.bidder = current_bidder
-        if bid == 0:
+        if self.current_hand.bid == 0:
             # No one bid, the dealer takes a two set
             self.forced_two_set = True
         self.current_hand.first_player = self.current_hand.bidder
