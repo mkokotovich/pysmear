@@ -139,12 +139,11 @@ class BasicBidding(SmearBiddingLogic):
             if tmp_bid > bid:
                 bid, bid_trump = tmp_bid, suit
 
-        if force_two and bid < 2:
-            if bid > 1:
-                # Go for it
+        if bid < 2:
+            if current_hand.bid < 2 and force_two and bid > 1:
+                # Go for it, otherwise we get set
                 bid = 2
             else:
-                # Too low, take the set:
                 bid = 0
 
-        return math.floor(bid), bid_trump
+        return int(math.floor(bid)), bid_trump
