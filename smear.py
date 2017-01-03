@@ -100,11 +100,28 @@ class SmearBiddingLogic:
         self.suits = ["Spades", "Clubs", "Diamonds", "Hearts"]
 
 
+    def choose(self, n, k):
+        """
+        A fast way to calculate binomial coefficients by Andrew Dalke (contrib).
+        """
+        if 0 <= k <= n:
+            ntok = 1
+            ktok = 1
+            for t in xrange(1, min(k, n - k) + 1):
+                ntok *= n
+                ktok *= t
+                n -= 1
+            return ntok // ktok
+        else:
+            return 0
+
+
     def declare_bid(self, current_hand, my_hand, force_two=False):
         pass
 
 
 # TODO: write more and better versions of these
+# TODO: Fix this percentage issue when high is 2
 class BasicBidding(SmearBiddingLogic):
     def expected_points_from_high(self, num_players, my_hand, suit):
         exp_points = 0
@@ -122,9 +139,17 @@ class BasicBidding(SmearBiddingLogic):
             # jick
             high_rank = 10
         other_possible_highs = 14 - high_rank
-        cards_in_play = (num_players-1)*len(my_hand)
-        percent_someone_else_has_high = other_possible_highs/float(cards_in_play)
-        exp_points = 1 * (1 - percent_someone_else_has_high)
+        remaining_cards_in_deck = 52 - len(my_hand)
+        percent_that_no_one_else_has_high = 1.0
+        for i in range(0, num_players-1):
+            if (remaining_cards_in_deck - other_possible_highs) < len(my_hand):
+                percent_that_no_one_else_has_high = 0
+                break
+            percent_that_no_one_else_has_high *= self.choose(remaining_cards_in_deck - other_possible_highs, len(my_hand))/float(self.choose(remaining_cards_in_deck, len(my_hand)))
+            remaining_cards_in_deck -= len(my_hand)
+        exp_points = 1 * percent_that_no_one_else_has_high
+        if self.debug:
+            print "{} exp points high: {}".format(suit, exp_points)
 
         return exp_points
 
@@ -145,9 +170,17 @@ class BasicBidding(SmearBiddingLogic):
             # jick
             low_rank = 10
         other_possible_lows = low_rank - 1
-        cards_in_play = (num_players-1)*len(my_hand)
-        percent_someone_else_has_low = other_possible_lows/float(cards_in_play)
-        exp_points = 1 * (1 - percent_someone_else_has_low)
+        remaining_cards_in_deck = 52 - len(my_hand)
+        percent_that_no_one_else_has_low = 1.0
+        for i in range(0, num_players-1):
+            if (remaining_cards_in_deck - other_possible_lows) < len(my_hand):
+                percent_that_no_one_else_has_low = 0
+                break
+            percent_that_no_one_else_has_low *= self.choose(remaining_cards_in_deck - other_possible_lows, len(my_hand))/float(self.choose(remaining_cards_in_deck, len(my_hand)))
+            remaining_cards_in_deck -= len(my_hand)
+        exp_points = 1 * percent_that_no_one_else_has_low
+        if self.debug:
+            print "{} exp points low: {}".format(suit, exp_points)
 
         return exp_points
 
@@ -159,6 +192,8 @@ class BasicBidding(SmearBiddingLogic):
         if len(my_trump) == 0:
             return 0
         exp_points = 0.2 * len(my_trump)
+        if self.debug:
+            print "{} exp points game: {}".format(suit, exp_points)
         return exp_points
 
 
@@ -172,24 +207,30 @@ class BasicBidding(SmearBiddingLogic):
         for idx in my_trump:
             if my_hand[idx].value == "Jack":
                 jacks_and_jicks += 1
-        exp_points = jacks_and_jicks
+        exp_points = jacks_and_jicks*0.75
+        if self.debug:
+            print "{} exp points jack jick: {}".format(suit, exp_points)
         return exp_points
 
     def declare_bid(self, current_hand, my_hand, force_two=False):
         bid = 0
         bid_trump = None
 
+        if self.debug:
+            print "Hand: {}".format(" ".join(x.abbrev for x in my_hand))
         for suit in self.suits:
             tmp_bid = 0
             tmp_bid += self.expected_points_from_high(current_hand.num_players, my_hand, suit)
             tmp_bid += self.expected_points_from_low(current_hand.num_players, my_hand, suit)
             tmp_bid += self.expected_points_from_game(current_hand.num_players, my_hand, suit)
             tmp_bid += self.expected_points_from_jack_and_jick(current_hand.num_players, my_hand, suit)
+            if self.debug:
+                print "{} tmp_bid: {}".format(suit, tmp_bid)
             if tmp_bid > bid:
                 bid, bid_trump = tmp_bid, suit
 
-        if force_two:
-            if bid < 2 and bid > 1:
+        if force_two and bid < 2:
+            if bid > 1:
                 # Go for it
                 bid = 2
             else:
@@ -277,8 +318,9 @@ class JustGreedyEnough(SmearPlayingLogic):
 
 
 class Player:
-    def __init__(self, player_id, initial_cards=None):
+    def __init__(self, player_id, initial_cards=None, debug=False):
         self.reset()
+        self.debug = debug
         if initial_cards:
             self.hand += initial_cards
             for card in initial_cards:
@@ -288,7 +330,7 @@ class Player:
         self.bid_trump = None
         self.is_bidder = False
         self.playing_logic = JustGreedyEnough()
-        self.bidding_logic = BasicBidding()
+        self.bidding_logic = BasicBidding(debug=debug)
 
     def reset(self):
         self.hand = pydealer.Stack()
@@ -314,15 +356,11 @@ class Player:
     def number_of_cards(self):
         return self.card_count.get_total()
 
-    def print_cards(self, debug=False):
-        msg = "Player {} hand: {}".format(self.name, len(self.hand))
-        msg += "\n"
-        if debug:
-            msg += str(self.hand)
-        msg += "Player {} pile: {}".format(self.name, len(self.pile))
-        if debug:
+    def print_cards(self, print_pile=False):
+        msg = "{} hand: {}".format(self.name, " ".join(x.abbrev for x in self.hand))
+        if print_pile:
             msg += "\n"
-            msg += str(self.pile)
+            msg += "{} pile: {}".format(self.name, " ".join(x.abbrev for x in self.pile))
         return msg
 
     # Returns a single card
@@ -337,6 +375,8 @@ class Player:
         return self.hand.size != 0
 
     def declare_bid(self, current_hand, force_two=False):
+        if self.debug:
+            print "{} is calculating bid".format(self.name)
         self.bid, self.bid_trump = self.bidding_logic.declare_bid(current_hand, self.hand, force_two)
         return self.bid
 
@@ -386,7 +426,7 @@ class Player:
             self.card_count.add_card(card)
 
     def __str__(self):
-        return self.print_cards(False)
+        return self.print_cards(print_pile=False)
 
 
 class Trick:
@@ -590,6 +630,7 @@ class SmearHandManager:
             next_id = 0
         return next_id
 
+    # TODO: handle forced two set
     def get_bids(self, dealer_id):
         self.current_hand.bid = 0
         self.current_hand.bidder = 0
@@ -635,8 +676,8 @@ class SmearGameManager:
         self.num_players = num_players
         self.cards_to_deal = cards_to_deal
         self.players = {}
-        self.initialize_players()
         self.debug = debug
+        self.initialize_players()
         self.game_over = False
         self.winning_score = 0
         self.scores = {}
@@ -646,7 +687,7 @@ class SmearGameManager:
 
     def initialize_players(self):
         for i in range(0, self.num_players):
-            self.players[i] = Player(i)
+            self.players[i] = Player(i, debug=self.debug)
 
     def reset_game(self):
         self.initialize_players()
