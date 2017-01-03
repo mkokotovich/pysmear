@@ -65,7 +65,7 @@ class SmearUtils():
         for i in range(0, len(indices)):
             # Loop through indices, comparing card in stack at that index to
             # card in stack at card_index
-            if stack[indices[i]].lt(stack[card_index], ranks=POKER_RANKS):
+            if stack[indices[i]].lt(stack[card_index], ranks=POKER_RANKS["values"]):
                 # New card is larger, keep going
                 continue
             else:
@@ -87,6 +87,6 @@ class SmearUtils():
             jick = jack_diamonds
         elif trump == "Diamonds":
             jick = jack_hearts
-        if jick in stack:
-            insert_card_into_sorted_index_list(trump_indices, stack, stack.find(jick))
+        if jick in stack.cards:
+            SmearUtils.insert_card_into_sorted_index_list(trump_indices, stack, stack.find(jick.abbrev)[0])
         return trump_indices

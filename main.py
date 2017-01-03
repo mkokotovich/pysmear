@@ -1,12 +1,12 @@
 # Simulator for the card game smear
 
 import sys
-from smear_simulator import SmearSimulator
+import pysmear
 
 def main():
     num_runs = 1
     print "Setting up..."
-    sim = SmearSimulator(debug=True)
+    sim = pysmear.SmearSimulator(debug=True)
     if len(sys.argv) > 1:
         num_runs = int(sys.argv[1])
     sim.run(num_runs)
