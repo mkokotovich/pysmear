@@ -2,9 +2,9 @@
 
 import pydealer
 import sys
-import math
 from pydealer.const import POKER_RANKS
 from bidding_logic import *
+from playing_logic import *
 from smear_utils import SmearUtils as utils
 #from stats import SmearStats
 
@@ -40,139 +40,6 @@ class CardCount:
 
     def get_count_dict(self):
         return self.counts
-
-
-class SmearUtils():
-    def __init__(self):
-        self.jack_hearts = pydealer.Card(value="Jack", suit="Hearts")
-        self.jack_spades = pydealer.Card(value="Jack", suit="Spades")
-        self.jack_diamonds = pydealer.Card(value="Jack", suit="Diamonds")
-        self.jack_clubs = pydealer.Card(value="Jack", suit="Clubs")
-
-    def is_trump(self, card, trump):
-        card_is_trump = False
-        if card.suit == trump:
-            return True
-        elif trump == "Spades":
-            return self.jack_clubs == card
-        elif trump == "Clubs":
-            return self.jack_spades == card
-        elif trump == "Hearts":
-            return self.jack_diamonds == card
-        elif trump == "Diamonds":
-            return self.jack_hearts == card
-        return card_is_trump
-
-    def insert_card_into_sorted_index_list(self, indices, stack, card_index):
-        # Assumes sorted from smallest to largest
-        for i in range(0, len(indices)):
-            # Loop through indices, comparing card in stack at that index to
-            # card in stack at card_index
-            if stack[indices[i]].lt(stack[card_index], ranks=POKER_RANKS):
-                # New card is larger, keep going
-                continue
-            else:
-                # New card is smaller, insert here
-                indices.insert(i, card_index)
-                break
-
-
-    # Sorted from smallest to largest
-    def get_trump_indices(self, trump, stack):
-        trump_indices = stack.find(trump, sort=True, ranks=POKER_RANKS)
-        jick = None
-        if trump == "Spades":
-            jick = self.jack_clubs
-        elif trump == "Clubs":
-            jick = self.jack_spades
-        elif trump == "Hearts":
-            jick = self.jack_diamonds
-        elif trump == "Diamonds":
-            jick = self.jack_hearts
-        if jick in stack:
-            insert_card_into_sorted_index_list(trump_indices, stack, stack.find(jick))
-        return trump_indices
-
-
-utils = SmearUtils()
-        
-
-class SmearPlayingLogic:
-    def __init__(self, debug=False):
-        self.debug = debug
-
-    def choose_card(self, current_hand, my_hand):
-        pass
-
-# TODO: write more and better versions of these
-class JustGreedyEnough(SmearPlayingLogic):
-    def find_lowest_card_index_to_beat(self, my_hand, card_to_beat, lead_suit, trump):
-        lowest_index = None
-        if utils.is_trump(card_to_beat, trump):
-            # Card to beat is trump, see if I have a higher trump
-            my_trump = utils.get_trump_indices(trump, my_hand)
-            for idx in my_trump:
-                if my_hand[idx].gt(card_to_beat.value, ranks=POKER_RANKS):
-                    lowest_index = idx
-        elif card_to_beat.suit == lead_suit:
-            my_trump = utils.get_trump_indices(trump, my_hand)
-            if len(my_trump) != 0:
-                # Card to beat isn't trump, but I have trump. Play my lowest trump
-                lowest_index = my_trump[0]
-            else:
-                matching_idxs = my_hand.find(card_to_beat.suit, sort=True, ranks=POKER_RANKS)
-                for idx in matching_idxs:
-                    # Play the lowest card in the matching suit that will beat the card to beat
-                    if my_hand[idx].gt(card_to_beat.value, ranks=POKER_RANKS):
-                        lowest_index = idx
-        else:
-            # Card to beat isn't trump and isn't the lead suit, this doesn't make sense
-            print "Error: card to beat seems incorrect: {}".format(card_to_beat)
-        return lowest_index
-        
-    def find_strongest_card(self, my_hand, trump):
-        my_trump = utils.get_trump_indices(trump, my_hand)
-        strongest_idx = None
-        if len(my_trump) != 0:
-            strongest_idx = my_trump[-1]
-        else:
-            my_hand.sort(ranks=POKER_RANKS)
-            strongest_idx = len(my_hand) - 1
-        return strongest_idx
-
-    def find_lowest_card_index(self, my_hand, lead_suit, trump):
-        lowest_index = None
-        lowest_trump_index = None
-        # First try following suit
-        my_hand.sort(ranks=POKER_RANKS)
-        indices = my_hand.find(lead_suit, sort=True, ranks=POKER_RANKS)
-        if len(indices) == 0:
-            indices = range(0, len(my_hand))
-        for idx in indices:
-            if utils.is_trump(my_hand[idx], trump) and lowest_trump_index == None:
-                lowest_trump_index = idx
-            else:
-                lowest_index = idx
-                break
-        if lowest_index == None:
-            lowest_index = lowest_trump_index
-        return lowest_index
-
-    def choose_card(self, current_hand, my_hand):
-        idx = 0
-        if len(current_hand.current_trick.cards.values()) == 0:
-            # I'm the first player. Choose my strongest card
-            idx = self.find_strongest_card(my_hand, current_hand.trump)
-        else:
-            # Otherwise choose the lowest card to beat the current highest card
-            idx = self.find_lowest_card_index_to_beat(my_hand, current_hand.current_trick.current_winning_card, current_hand.current_trick.lead_suit, current_hand.trump)
-            if idx == None:
-                # If we can't beat it, then just play the lowest card, following suit as needed
-                idx = self.find_lowest_card_index(my_hand, current_hand.current_trick.lead_suit, current_hand.trump)
-
-        card_to_play = my_hand[idx]
-        del my_hand[idx]
-        return card_to_play
 
 
 class Player:
