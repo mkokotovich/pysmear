@@ -17,36 +17,11 @@ class Trick:
 
     def is_new_card_higher(self, card):
         is_higher = False
-        if utils.is_trump(self.current_winning_card, self.trump):
-            # Current winning card is trump
-            if utils.is_trump(card, self.trump):
-                # New card is also trump
-                if card.suit == self.current_winning_card.suit:
-                    # Neither are Jicks, just compare
-                    is_higher = POKER_RANKS["values"][card.value] > POKER_RANKS["values"][self.current_winning_card.value]
-                    if self.debug:
-                        print "Both cards are trump, {} is higher than {}".format(str(card) if is_higher else str(self.current_winning_card), str(self.current_winning_card) if is_higher else str(card))
-                else:
-                    # One of the cards is the jick
-                    if card.suit != self.trump:
-                        # The card is a jick, if the current_winning_card is a Jack or higher it wins
-                        is_higher = not POKER_RANKS["values"][self.current_winning_card.value] > POKER_RANKS["values"]["10"]
-                        if self.debug:
-                            print "{} is jick and {} higher than {}".format(str(card), "is" if is_higher else "is not", str(self.current_winning_card))
-                    else:
-                        # The current_winning_card is a jick
-                        is_higher = POKER_RANKS["values"][card.value] > POKER_RANKS["values"]["10"]
-                        if self.debug:
-                            print "Both cards are trump (current_winning is jick), {} is higher than {}".format(str(card) if is_higher else str(self.current_winning_card), str(self.current_winning_card) if is_higher else str(card))
-            else:
-                # New card is not trump, but current is
-                if self.debug:
-                    print "{} is not trump, and current winning card {} is".format(str(card), str(self.current_winning_card))
-                is_higher = False
-        elif utils.is_trump(card, self.trump):
+        if utils.is_trump(self.current_winning_card, self.trump) or utils.is_trump(card, self.trump):
+            # At least one of the cards is trump, compare to new card
+            is_higher = not utils.is_less_than(card, self.current_winning_card, self.trump):
             if self.debug:
-                print "{} is trump, and current winning card {} is not".format(str(card), str(self.current_winning_card))
-            is_higher = True
+                print "At least one card is trump, {} is higher than {}".format(str(card) if is_higher else str(self.current_winning_card), str(self.current_winning_card) if is_higher else str(card))
         elif card.suit == self.current_winning_card.suit:
             # Both are not trump, but are the same suit
             is_higher = POKER_RANKS["values"][card.value] > POKER_RANKS["values"][self.current_winning_card.value]

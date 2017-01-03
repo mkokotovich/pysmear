@@ -9,6 +9,35 @@ jack_diamonds = pydealer.Card(value="Jack", suit="Diamonds")
 jack_clubs = pydealer.Card(value="Jack", suit="Clubs")
 
 class SmearUtils():
+    # Returns the value of card_lhs < card_rhs, following the rules of trump
+    @staticmethod
+    def is_less_than(card_lhs, card_rhs, trump):
+        less_than = False
+        if SmearUtils.is_trump(card_lhs, trump) and not SmearUtils.is_trump(card_rhs, trump):
+            # lhs is trump and rhs isn't, return false
+            less_than = False
+        elif not SmearUtils.is_trump(card_lhs, trump) and SmearUtils.is_trump(card_rhs, trump):
+            # lhs is not trump and rhs is, return true
+            less_than = True
+        elif SmearUtils.is_trump(card_lhs, trump):
+            # Both are trump
+            if card_lhs.suit == card_rhs.suit:
+                # Neither are Jicks, just compare
+                less_than = POKER_RANKS["values"][card_lhs.value] < POKER_RANKS["values"][card_rhs.value]
+            else:
+                # One of the cards is the jick
+                if card_lhs.suit != self.trump:
+                    # card_lhs is a jick, lhs is less than rhs if rhs is greater than or equal to a jack
+                    less_than = POKER_RANKS["values"][card_rhs.value] >= POKER_RANKS["values"]["Jack"]
+                else:
+                    # card_rhs is a jick, lhs is less than rhs if lhs is less than or equal to a 10
+                    less_than = POKER_RANKS["values"][card_lhs.value] <= POKER_RANKS["values"]["10"]
+        else:
+            # Neither are trump, just compare values (although this isn't how tricks are taken)
+            print "Warning, comparing cards with different suits"
+            less_than = POKER_RANKS["values"][card_lhs.value] < POKER_RANKS["values"][card_rhs.value]
+
+
     @staticmethod
     def is_trump(card, trump):
         card_is_trump = False
@@ -23,6 +52,7 @@ class SmearUtils():
         elif trump == "Diamonds":
             return jack_hearts == card
         return card_is_trump
+
 
     @staticmethod
     def insert_card_into_sorted_index_list(indices, stack, card_index):
