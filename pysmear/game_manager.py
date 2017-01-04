@@ -70,8 +70,8 @@ class SmearGameManager:
                 msg += "\n"
         return msg
 
-# TODO: Write better logic for winning by two and bidder-goes-out
-    def update_scores(self, hand_scores):
+# TODO: Write better logic for winning by two and ties
+    def update_scores(self, hand_scores, bidder):
         if self.debug:
             print "Current score:\n{}".format(self.format_scores(self.scores))
             print "Score of last hand:\n{}".format(self.format_scores(hand_scores))
@@ -80,7 +80,11 @@ class SmearGameManager:
         if self.debug:
             print "New scores:\n{}".format(self.format_scores(self.scores))
         if max(self.scores.values()) >= self.score_to_play_to:
-            self.winning_score = max(self.scores.values())
+            if self.scores[bidder] >= self.score_to_play_to:
+                # Bidder always goes out, regardless of who had the higher score
+                self.winning_score = self.scores[bidder]
+            else:
+                self.winning_score = max(self.scores.values())
             self.game_over = True
             if self.debug:
                 print "Game over with a winning score of {}".format(self.winning_score)
@@ -102,4 +106,4 @@ class SmearGameManager:
             while not self.current_hand.is_hand_over():
                 self.current_hand.play_trick()
         # Update scores
-        self.update_scores(self.current_hand.get_scores(self.dealer))
+        self.update_scores(self.current_hand.get_scores(self.dealer), self.current_hand.bidder)
