@@ -149,4 +149,4 @@ class Player:
             self.card_count.add_card(card)
 
     def __str__(self):
-        return self.print_cards(print_pile=False)
+        return "{}: {}".format(self.name, " ".join(x.abbrev for x in self.hand))

@@ -183,12 +183,16 @@ class SmearHandManager:
 
     def play_trick(self):
         current_player = self.current_hand.first_player
+        msg = ""
         for i in range(0, self.num_players):
+            if self.debug:
+                # Grab this before playing a card so it is included
+                msg = str(self.players[current_player])
             card = self.players[current_player].play_card(self.current_hand)
             # Because you don't need to take low home to get the point
             self.update_low_if_needed(card, current_player)
             if self.debug:
-                print "{}: {}".format(self.players[current_player].name, str(card))
+                print "{} plays {}".format(msg, str(card))
             self.current_hand.add_card(current_player, card)
             current_player = self.next_player_id(current_player)
         # Give all cards to winner

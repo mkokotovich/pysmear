@@ -19,7 +19,7 @@ class JustGreedyEnough(SmearPlayingLogic):
             # Card to beat is trump, see if I have a higher trump
             my_trump = utils.get_trump_indices(trump, my_hand)
             for idx in my_trump:
-                if my_hand[idx].gt(card_to_beat.value, ranks=POKER_RANKS):
+                if utils.is_less_than(card_to_beat, my_hand[idx], trump):
                     lowest_index = idx
         elif card_to_beat.suit == lead_suit:
             my_trump = utils.get_trump_indices(trump, my_hand)
@@ -30,7 +30,7 @@ class JustGreedyEnough(SmearPlayingLogic):
                 matching_idxs = my_hand.find(card_to_beat.suit, sort=True, ranks=POKER_RANKS)
                 for idx in matching_idxs:
                     # Play the lowest card in the matching suit that will beat the card to beat
-                    if my_hand[idx].gt(card_to_beat.value, ranks=POKER_RANKS):
+                    if my_hand[idx].gt(card_to_beat, ranks=POKER_RANKS["values"]):
                         lowest_index = idx
         else:
             # Card to beat isn't trump and isn't the lead suit, this doesn't make sense
