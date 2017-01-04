@@ -4,40 +4,8 @@ import pydealer
 from pydealer.const import POKER_RANKS
 from bidding_logic import *
 from playing_logic import *
-#from stats import SmearStats
+from player_input import *
 
-class CardCount:
-    def __init__(self):
-        self.counts = {
-            "Ace": 0,
-            "King": 0,
-            "Queen": 0,
-            "Jack": 0,
-            "10": 0,
-            "9": 0,
-            "8": 0,
-            "7": 0,
-            "6": 0,
-            "5": 0,
-            "4": 0,
-            "3": 0,
-            "2": 0,
-        }
-
-    def add_card(self, card):
-        self.counts[card.value] += 1
-
-    def remove_card(self, card):
-        self.counts[card.value] -= 1
-
-    def get_count(self, card_str):
-        return self.counts[card_str]
-
-    def get_total(self):
-        return sum(self.counts.values())
-
-    def get_count_dict(self):
-        return self.counts
 
 
 class Player:
@@ -46,8 +14,6 @@ class Player:
         self.debug = debug
         if initial_cards:
             self.hand += initial_cards
-            for card in initial_cards:
-                self.card_count.add_card(card)
         self.name = "player{}".format(player_id)
         self.bid = 0
         self.bid_trump = None
@@ -58,26 +24,16 @@ class Player:
     def reset(self):
         self.hand = pydealer.Stack()
         self.pile = pydealer.Stack()
-        self.card_count = CardCount()
         self.bid = 0
         self.bid_trump = None
-        self.have_bid = False
+        self.is_bidder = False
 
     def set_initial_cards(self, initial_cards):
         self.hand = pydealer.Stack()
         self.hand += initial_cards
-        for card in initial_cards:
-            self.card_count.add_card(card)
 
     def receive_dealt_card(self, dealt_card):
         self.hand += dealt_card
-        self.card_count.add_card(dealt_card[0])
-
-    def get_card_count(self):
-        return self.card_count.get_count_dict()
-
-    def number_of_cards(self):
-        return self.card_count.get_total()
 
     def print_cards(self, print_pile=False):
         msg = "{} hand: {}".format(self.name, " ".join(x.abbrev for x in self.hand))
@@ -90,8 +46,9 @@ class Player:
     def play_card(self, current_hand):
         if self.hand.size == 0:
             return None
-        card_to_play = self.playing_logic.choose_card(current_hand, self.hand)
-        self.card_count.remove_card(card_to_play)
+        card_index = self.playing_logic.choose_card(current_hand, self.hand)
+        card_to_play = self.hand[card_index]
+        del self.hand[card_index]
         return card_to_play
 
     def has_cards(self):
@@ -128,13 +85,6 @@ class Player:
             high_trump = self.pile[my_trump[-1]]
         return high_trump
 
-    def get_low_trump_card(self, trump):
-        low_trump = None
-        my_trump = utils.get_trump_indices(trump, self.pile)
-        if len(my_trump) != 0:
-            low_trump = self.pile[my_trump[0]]
-        return low_trump
-
     def get_jacks_and_jicks_count(self, trump):
         my_trump = utils.get_trump_indices(trump, self.pile)
         points = 0
@@ -145,8 +95,13 @@ class Player:
 
     def add_cards_to_pile(self, cards):
         self.pile += cards
-        for card in cards:
-            self.card_count.add_card(card)
 
     def __str__(self):
         return "{}: {}".format(self.name, " ".join(x.abbrev for x in self.hand))
+
+
+class InteractivePlayer(Player):
+    def __init__(self, player_id, initial_cards=None, debug=False):
+        Player.__init__(self, player_id, initial_cards, debug)
+        self.playing_logic = PlayerInput(debug=debug)
+        self.bidding_logic = self.playing_logic

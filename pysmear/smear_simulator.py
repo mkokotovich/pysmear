@@ -2,19 +2,24 @@
 
 import sys
 from game_manager import SmearGameManager
+from player import *
 #from stats import SmearStats
 
 
 class SmearSimulator:
     def __init__(self, debug=False):
         self.debug = debug
-        self.smear = SmearGameManager(num_players=3, cards_to_deal=6, debug=debug)
+        self.smear = SmearGameManager(cards_to_deal=6, debug=debug)
+        self.smear.add_player(Player(0, debug=debug))
+        self.smear.add_player(Player(1, debug=debug))
+        self.smear.add_player(InteractivePlayer(2, debug=debug))
         #self.smear_stats = SmearStats()
 
     def play_game(self):
         if self.debug:
             print "\n\n Starting game \n"
         self.smear.reset_game()
+        self.smear.start_game()
         #self.smear_stats.add_new_game()
         #for player in self.smear.get_players():
             #self.smear_stats.add_game_status(self.smear.number_of_hands, player.name, player.get_card_count(), player.number_of_cards())

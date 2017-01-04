@@ -7,30 +7,39 @@ from player import Player
 
 
 class SmearGameManager:
-    def __init__(self, num_players=2, cards_to_deal=6, score_to_play_to=11, debug=False):
+    def __init__(self, num_players=0, cards_to_deal=6, score_to_play_to=11, debug=False):
         self.num_players = num_players
         self.cards_to_deal = cards_to_deal
         self.players = {}
         self.debug = debug
-        self.initialize_players()
         self.game_over = False
         self.winning_score = 0
         self.scores = {}
         self.score_to_play_to = score_to_play_to
-        self.hand_manager = SmearHandManager(self.players, self.cards_to_deal, debug)
+        self.hand_manager = None
         self.dealer = 0
 
-    def initialize_players(self):
+    def initialize_default_players(self):
         for i in range(0, self.num_players):
             self.players[i] = Player(i, debug=self.debug)
 
+    def reset_players(self):
+        for i in range(0, self.num_players):
+            self.players[i].reset()
+
+    def add_player(self, player):
+        self.players[self.num_players] = player
+        self.num_players += 1
+
     def reset_game(self):
-        self.initialize_players()
+        self.reset_players()
         self.scores = {}
         self.game_over = False
         self.winning_score = 0
-        self.hand_manager = SmearHandManager(self.players, self.cards_to_deal, self.debug)
         self.dealer = 0
+
+    def start_game(self):
+        self.hand_manager = SmearHandManager(self.players, self.cards_to_deal, self.debug)
 
     def is_game_over(self):
         return self.game_over

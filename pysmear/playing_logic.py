@@ -77,6 +77,4 @@ class JustGreedyEnough(SmearPlayingLogic):
                 # If we can't beat it, then just play the lowest card, following suit as needed
                 idx = self.find_lowest_card_index(my_hand, current_hand.current_trick.lead_suit, current_hand.trump)
 
-        card_to_play = my_hand[idx]
-        del my_hand[idx]
-        return card_to_play
+        return idx
