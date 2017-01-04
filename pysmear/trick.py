@@ -8,7 +8,8 @@ from smear_utils import SmearUtils as utils
 
 class Trick:
     def __init__(self, trump, debug=False):
-        self.cards = {}
+        # This list is in order of cards played
+        self.cards = []
         self.trump = trump 
         self.lead_suit = ""
         self.current_winner_id = 0
@@ -36,7 +37,7 @@ class Trick:
         return is_higher
 
     def add_card(self, player_id, card):
-        if len(self.cards.values()) == 0:
+        if len(self.cards) == 0:
             # This is the first card
             self.lead_suit = card.suit
             self.current_winning_card = card
@@ -44,13 +45,13 @@ class Trick:
         elif self.is_new_card_higher(card):
             self.current_winning_card = card
             self.current_winner_id = player_id
-        self.cards[player_id] = card
+        self.cards.append(card)
 
     def get_winner_id(self):
         return self.current_winner_id
 
     def get_all_cards_as_stack(self):
         stack = pydealer.Stack()
-        for x in self.cards.values():
+        for x in self.cards:
             stack += [x]
         return stack

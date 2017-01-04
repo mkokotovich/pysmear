@@ -67,7 +67,7 @@ class JustGreedyEnough(SmearPlayingLogic):
 
     def choose_card(self, current_hand, my_hand):
         idx = 0
-        if len(current_hand.current_trick.cards.values()) == 0:
+        if len(current_hand.current_trick.cards) == 0:
             # I'm the first player. Choose my strongest card
             idx = self.find_strongest_card(my_hand, current_hand.trump)
         else:
