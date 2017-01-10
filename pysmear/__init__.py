@@ -1,1 +1,0 @@
-from smear_simulator import SmearSimulator

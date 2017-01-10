@@ -14,7 +14,7 @@ class Player:
         self.debug = debug
         if initial_cards:
             self.hand += initial_cards
-        self.name = "player{}".format(player_id)
+        self.name = player_id
         self.bid = 0
         self.bid_trump = None
         self.is_bidder = False

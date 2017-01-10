@@ -21,7 +21,7 @@ class SmearGameManager:
 
     def initialize_default_players(self):
         for i in range(0, self.num_players):
-            self.players[i] = Player(i, debug=self.debug)
+            self.players[i] = Player("player{}".format(i), debug=self.debug)
 
     def reset_players(self):
         for i in range(0, self.num_players):
