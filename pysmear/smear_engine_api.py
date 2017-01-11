@@ -29,6 +29,10 @@ class SmearEngineApi:
         return self.desired_players == len(self.smear.get_players())
 
 
+    def get_number_of_players(self):
+        return self.desired_players
+
+
     def get_player_names(self):
         names = [ x.name for x in self.smear.get_players() ]
         return names
