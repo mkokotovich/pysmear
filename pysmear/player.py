@@ -8,16 +8,17 @@ from player_input import *
 
 
 
-class Player:
+class Player(object):
     def __init__(self, player_id, initial_cards=None, debug=False):
-        self.reset()
+        self.hand = pydealer.Stack()
+        self.pile = pydealer.Stack()
+        self.bid = 0
+        self.bid_trump = None
+        self.is_bidder = False
         self.debug = debug
         if initial_cards:
             self.hand += initial_cards
         self.name = player_id
-        self.bid = 0
-        self.bid_trump = None
-        self.is_bidder = False
         self.playing_logic = JustGreedyEnough()
         self.bidding_logic = BasicBidding(debug=debug)
 
@@ -102,6 +103,20 @@ class Player:
 
 class InteractivePlayer(Player):
     def __init__(self, player_id, initial_cards=None, debug=False):
-        Player.__init__(self, player_id, initial_cards, debug)
+        super(InteractivePlayer, self).__init__(player_id, initial_cards, debug)
         self.playing_logic = PlayerInput(debug=debug)
         self.bidding_logic = self.playing_logic
+
+    def reset(self):
+        super(InteractivePlayer, self).reset()
+        self.playing_logic.reset()
+
+    def get_hand(self):
+        my_hand = [ { "suit": card.suit, "value": card.value} for card in self.hand ]
+        return my_hand
+
+    def get_bid_info(self):
+        return self.bidding_logic.get_bid_info()
+
+    def save_bid(self, bid, trump):
+        self.bidding_logic.save_bid(bid, trump)

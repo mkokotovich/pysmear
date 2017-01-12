@@ -1,20 +1,26 @@
 # API for playing the card game smear
 
 import sys
+from threading import Thread
 from game_manager import SmearGameManager
 from player import *
 #from stats import SmearStats
 
+def play_game_as_thread(smear):
+    smear.play_hand()
+    #while not smear.is_game_over():
+    #    smear.play_hand()
 
 class SmearEngineApi:
     def __init__(self, debug=False):
         self.debug = debug
         self.desired_players = 0
         self.smear = None
+        self.thread = None
         #self.smear_stats = SmearStats()
 
     def create_new_game(self, num_players, cards_to_deal=6):
-        self.smear = SmearGameManager(cards_to_deal, debug=self.debug)
+        self.smear = SmearGameManager(cards_to_deal=cards_to_deal, debug=self.debug)
         self.desired_players = num_players
 
 
@@ -41,28 +47,29 @@ class SmearEngineApi:
     def start_game(self):
         if self.debug:
             print "\n\n Starting game \n"
+        if not self.all_players_added():
+            print "Error: Can't start game before all players are added"
+            return
+        print "Number of players: " + str(len(self.smear.get_players()))
         self.smear.reset_game()
         self.smear.start_game()
+        self.thread = Thread(target=play_game_as_thread, args = ( self.smear, ))
+        self.thread.start()
 
 
-    def play_hand(self):
-        while not self.smear.is_game_over():
-            self.smear.play_hand()
-            #for player in self.smear.get_players():
-                #self.smear_stats.add_game_status(self.smear.number_of_hands, player.name, player.get_card_count(), player.number_of_cards())
-            if self.debug:
-                print self.smear
-        if self.debug:
-            print self.smear.post_game_summary()
-        #self.smear_stats.finalize_game(self.smear.number_of_hands, self.smear.get_winner())
+    def finish_game(self):
+        self.thread.join()
 
-    def run(self, num_games=1):
-        sys.stdout.write("Running simulation")
-        for n in range(0, num_games):
-            sys.stdout.write(".")
-            sys.stdout.flush()
-            self.play_game()
-        sys.stdout.write("\n")
-
-    #def stats(self):
-        #return self.smear_stats.summarize()
+    
+    def get_hand_for_player(self, player_name):
+        player = None
+        for player_itr in self.smear.get_players():
+            if player_itr.name == player_name:
+                player = player_itr
+        if player == None:
+            return None
+        cards = player.get_hand()
+        while len(cards) == 0:
+            time.sleep(5)
+            cards = player.get_hand()
+        return cards
