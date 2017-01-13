@@ -24,7 +24,6 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         bid_info = {}
         bid_info['force_two'] = force_two
         bid_info['current_bid'] = current_hand.bid
-        #bid_info['bidder'] = current_hand.players[current_hand.bidder].name
         bid_info['bidder'] = current_hand.bidder
         return bid_info
 
