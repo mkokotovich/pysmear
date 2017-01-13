@@ -27,12 +27,22 @@ class SmearBiddingLogic:
             return 0
 
 
-    def declare_bid(self, current_hand, my_hand, force_two=False):
+    def calculate_bid(self, current_hand, my_hand, force_two=False):
+        pass
+
+    def declare_bid(self):
+        pass
+
+    def declare_trump(self):
         pass
 
 
 # TODO: write more and better versions of these
 class BasicBidding(SmearBiddingLogic):
+    def __init__(self):
+        self.trump = ""
+        self.bid = 0
+
     def expected_points_from_high(self, num_players, my_hand, suit):
         exp_points = 0
         my_trump = utils.get_trump_indices(suit, my_hand)
@@ -122,7 +132,7 @@ class BasicBidding(SmearBiddingLogic):
             print "{} exp points jack jick: {}".format(suit, exp_points)
         return exp_points
 
-    def declare_bid(self, current_hand, my_hand, force_two=False):
+    def calculate_bid(self, current_hand, my_hand, force_two=False):
         bid = 0
         bid_trump = None
 
@@ -148,4 +158,13 @@ class BasicBidding(SmearBiddingLogic):
             else:
                 bid = 0
 
-        return int(math.floor(bid)), bid_trump
+        self.bid = int(math.floor(bid))
+        self.trump = bid_trump
+
+
+    def declare_bid(self):
+        return self.bid
+
+
+    def declare_trump(self):
+        return self.trump

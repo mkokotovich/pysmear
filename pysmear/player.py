@@ -58,10 +58,12 @@ class Player(object):
     def declare_bid(self, current_hand, force_two=False):
         if self.debug:
             print "{} is calculating bid".format(self.name)
-        self.bid, self.bid_trump = self.bidding_logic.declare_bid(current_hand, self.hand, force_two)
+        self.bidding_logic.calculate_bid(current_hand, self.hand, force_two)
+        self.bid = self.bidding_logic.declare_bid()
         return self.bid
 
     def get_trump(self):
+        self.bid_trump = self.bidding_logic.declare_trump()
         return self.bid_trump
 
     def calculate_game_score(self):
@@ -118,5 +120,8 @@ class InteractivePlayer(Player):
     def get_bid_info(self):
         return self.bidding_logic.get_bid_info()
 
-    def save_bid(self, bid, trump):
-        self.bidding_logic.save_bid(bid, trump)
+    def save_bid(self, bid):
+        self.bidding_logic.save_bid(bid)
+
+    def save_trump(self, trump):
+        self.bidding_logic.save_trump(trump)

@@ -91,3 +91,13 @@ class SmearEngineApi:
         player_name = self.smear.get_players()[player_id].name
         bid_info["bidder"] = player_name
         return bid_info
+
+
+    def submit_bid_for_player(self, player_name, bid):
+        player = None
+        for player_itr in self.smear.get_players():
+            if player_itr.name == player_name:
+                player = player_itr
+        if player == None:
+            return None
+        player.save_bid(bid)

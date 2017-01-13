@@ -35,21 +35,32 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
     def get_bid_info(self):
         return self.bid_info
 
-    def save_bid(self, bid, bid_trump):
+    def save_bid(self, bid):
         self.player_bid = bid
-        self.player_bid_trump = bid_trump
+
+    def save_bid(self, trump):
+        self.player_bid_trump = trump
 
     def get_bid_from_player(self):
-        while self.player_bid == None or self.player_bid_trump == None:
+        while self.player_bid == None:
             time.sleep(5)
-        return self.player_bid, self.player_bid_trump
+        return self.player_bid
 
-    def declare_bid(self, current_hand, my_hand, force_two=False):
-        bid = 0
-        bid_trump = ""
+    def get_trump_from_player(self):
+        while self.player_bid_trump == None:
+            time.sleep(5)
+        return self.player_bid_trump
+
+    def calculate_bid(self, current_hand, my_hand, force_two=False):
         self.save_bid_info(current_hand, force_two)
-        bid, bid_trump = self.get_bid_from_player()
-        return bid, bid_trump
+
+    def declare_bid(self):
+        bid = self.get_bid_from_player()
+        return bid
+
+    def declare_trump(self):
+        trump = self.get_trump_from_player()
+        return trump
 
     def convert_playing_info_to_dict(self, current_hand, my_hand):
         playing_info = {}
