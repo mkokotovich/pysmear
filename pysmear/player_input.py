@@ -13,11 +13,11 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         self.reset()
 
     def reset(self):
-        self.bid_info = {}
+        self.bid_info = None
         self.player_bid = None 
         self.player_bid_trump = None
-        self.playing_info = {}
-        self.playing_card_index = 0
+        self.playing_info = None
+        self.playing_card_index = None
 
 
     def convert_bid_info_to_dict(self, current_hand, force_two):
@@ -31,7 +31,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
     def save_bid_info(self, current_hand, force_two):
         self.bid_info = self.convert_bid_info_to_dict(current_hand, force_two)
         # TODO: remove this later
-        self.save_bid(2, "Spades")
+        #self.save_bid(2, "Spades")
 
     def get_bid_info(self):
         return self.bid_info

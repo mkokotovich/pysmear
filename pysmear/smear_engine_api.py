@@ -73,3 +73,21 @@ class SmearEngineApi:
             time.sleep(5)
             cards = player.get_hand()
         return cards
+
+
+    def get_bid_info_for_player(self, player_name):
+        player = None
+        for player_itr in self.smear.get_players():
+            if player_itr.name == player_name:
+                player = player_itr
+        if player == None:
+            return None
+        bid_info = player.get_bid_info()
+        while bid_info == None:
+            time.sleep(5)
+            bid_info = player.get_bid_info()
+        # populate the username since we have that info here
+        player_id = bid_info["bidder"]
+        player_name = self.smear.get_players()[player_id].name
+        bid_info["bidder"] = player_name
+        return bid_info
