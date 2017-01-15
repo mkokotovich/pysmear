@@ -101,3 +101,14 @@ class SmearEngineApi:
         if player == None:
             return None
         player.save_bid(bid)
+
+
+    def get_high_bid(self):
+        high_bid = 0
+        player_id = 0
+        username = ""
+        while not self.smear.all_bids_are_in():
+            time.sleep(5)
+        high_bid, player_id = self.smear.get_bid_and_bidder()
+        username = self.smear.get_players()[player_id].name
+        return high_bid, username

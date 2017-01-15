@@ -46,6 +46,12 @@ class SmearGameManager:
     def is_game_over(self):
         return self.game_over
 
+    def all_bids_are_in(self):
+        return self.hand_manager.all_bids_are_in
+
+    def get_bid_and_bidder(self):
+        return self.hand_manager.current_hand.bid, self.hand_manager.current_hand.bidder
+
     def next_dealer(self):
         self.dealer = self.dealer + 1
         if self.dealer == self.num_players:

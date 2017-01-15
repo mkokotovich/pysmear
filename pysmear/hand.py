@@ -43,6 +43,7 @@ class SmearHandManager:
         self.scores = {}
         self.current_low_id = 0
         self.current_low = None
+        self.all_bids_are_in = False
         self.forced_two_set = False
         self.debug = debug
 
@@ -64,6 +65,7 @@ class SmearHandManager:
         self.scores = {}
         self.current_low_id = 0
         self.current_low = None
+        self.all_bids_are_in = False
         self.forced_two_set = False
 
     def is_hand_over(self):
@@ -161,6 +163,7 @@ class SmearHandManager:
             if bid > self.current_hand.bid:
                 self.current_hand.bid = bid
                 self.current_hand.bidder = current_bidder
+        self.all_bids_are_in = True
         if self.current_hand.bid == 0:
             # No one bid, the dealer takes a two set
             self.forced_two_set = True
