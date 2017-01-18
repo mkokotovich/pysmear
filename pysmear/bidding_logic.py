@@ -5,7 +5,7 @@ import math
 from pydealer.const import POKER_RANKS
 from smear_utils import SmearUtils as utils
 
-class SmearBiddingLogic:
+class SmearBiddingLogic(object):
     def __init__(self, debug=False):
         self.debug = debug
         self.suits = ["Spades", "Clubs", "Diamonds", "Hearts"]
@@ -39,7 +39,8 @@ class SmearBiddingLogic:
 
 # TODO: write more and better versions of these
 class BasicBidding(SmearBiddingLogic):
-    def __init__(self):
+    def __init__(self, debug=False):
+        super(BasicBidding, self).__init__(debug)
         self.trump = ""
         self.bid = 0
 
