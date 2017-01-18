@@ -189,7 +189,7 @@ class SmearHandManager:
         msg = ""
         for i in range(0, self.num_players):
             if self.debug:
-                # Grab this before playing a card so it is included
+                # Grab this before playing a card so that card is included
                 msg = str(self.players[current_player])
             card = self.players[current_player].play_card(self.current_hand)
             # Because you don't need to take low home to get the point

@@ -115,6 +115,8 @@ class InteractivePlayer(Player):
 
     def get_hand(self):
         my_hand = [ { "suit": card.suit, "value": card.value} for card in self.hand ]
+        if len(my_hand) == 0:
+            my_hand = None
         return my_hand
 
     def get_bid_info(self):
@@ -125,3 +127,9 @@ class InteractivePlayer(Player):
 
     def save_trump(self, trump):
         self.bidding_logic.save_trump(trump)
+
+    def get_playing_info(self):
+        return self.playing_logic.get_playing_info()
+
+    def save_card_to_play(self, card_to_play):
+        self.bidding_logic.save_card_to_play(card_to_play)

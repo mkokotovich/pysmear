@@ -17,7 +17,8 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         self.player_bid = None 
         self.player_bid_trump = None
         self.playing_info = None
-        self.playing_card_index = None
+        self.player_card_index = None
+        self.my_hand = None
 
 
     def convert_bid_info_to_dict(self, current_hand, force_two):
@@ -62,22 +63,41 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
 
     def convert_playing_info_to_dict(self, current_hand, my_hand):
         playing_info = {}
-        playing_info['trump'] = current_hand.trump
-        playing_info['current_trick'] = [ card.abbrev for card in current_hand.current_trick.cards ]
-        playing_info['current_winning_card'] = current_hand.current_trick.current_winning_card.abbrev if current_hand.current_trick.current_winning_card is not None else "None"
+        playing_info['current_trick'] = [ { "suit": card.suit, "value": card.value} for card in current_hand.current_trick.cards ]
+        card = current_hand.current_trick.current_winning_card
+        playing_info['current_winning_card'] = { "suit": card.suit, "value": card.value } if card is not None else { "suit": "", "value": "" }
         playing_info['lead_suit'] = current_hand.current_trick.lead_suit
-        playing_info['my_hand'] = [ { "suit": card.suit, "value": card.value} for card in my_hand ]
         return playing_info
 
-    def send_playing_info_to_player(self, current_hand, my_hand):
-        playing_info = self.convert_playing_info_to_dict(current_hand, my_hand)
-        playing_json = json.dumps(playing_info)
-        print playing_json
+    def save_playing_info(self, current_hand, my_hand):
+        self.playing_info = self.convert_playing_info_to_dict(current_hand, my_hand)
+        # For translating from dict to index, later
+        self.my_hand = my_hand
 
-    def get_card_index_from_player(self):
-        return 0
+    def get_playing_info(self):
+        return self.playing_info
+
+    def save_card_to_play(self, card_to_play):
+        # card is in dict format, need to find index
+        index = None
+        for i in range(0, len(self.my_hand)):
+            card = self.my_hand[i]
+            if card.value == card_to_play["value"] and card.suit == card_to_play["suit"]:
+                # Found the card, index is i
+                index = i
+        if index == None:
+            # Unable to find card
+            print "Error, unable to find {} in my hand".format(str(card_to_play))
+            return False
+        self.player_card_index = index
+        return True
+
+    def get_card_index_to_play_from_player(self):
+        while self.player_card_index == None:
+            time.sleep(5)
+        return self.player_card_index
 
     def choose_card(self, current_hand, my_hand):
-        self.send_playing_info_to_player(current_hand, my_hand)
-        card_index = self.get_card_index_from_player()
+        self.save_playing_info(current_hand, my_hand)
+        card_index = self.get_card_index_to_play_from_player()
         return card_index

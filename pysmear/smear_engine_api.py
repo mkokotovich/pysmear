@@ -17,7 +17,23 @@ class SmearEngineApi:
         self.desired_players = 0
         self.smear = None
         self.thread = None
-        #self.smear_stats = SmearStats()
+        self.timeout_after = 600
+
+    def wait_for_valid_output(self, function_to_call, debug_message=None):
+        sleep_interval = 5
+        time_waited = 0
+        ret = function_to_call()
+        while (ret == None or ret == False) and time_waited < self.timeout_after:
+            #sleep and check again
+            if self.debug:
+                print "Sleeping: {}".format(debug_message)
+            time.sleep(sleep_interval)
+            time_waited += sleep_interval
+            ret = function_to_call()
+        if time_waited >= self.timeout_after:
+            print "Calling {} ({}) took too long, giving up.".format(str(function_to_call), debug_message)
+        return ret
+
 
     def create_new_game(self, num_players, cards_to_deal=6):
         self.smear = SmearGameManager(cards_to_deal=cards_to_deal, debug=self.debug)
@@ -71,12 +87,7 @@ class SmearEngineApi:
         if player == None:
             print "Error: unable to find {}".format(player_name)
             return None
-        cards = player.get_hand()
-        while len(cards) == 0:
-            if self.debug:
-                print "Waiting for {}'s hand to be available".format(player_name)
-            time.sleep(5)
-            cards = player.get_hand()
+        cards = self.wait_for_valid_output(player.get_hand, debug_message="Waiting for {}'s hand to be available".format(player_name))
         return cards
 
 
@@ -88,12 +99,10 @@ class SmearEngineApi:
         if player == None:
             print "Error: unable to find {}".format(player_name)
             return None
-        bid_info = player.get_bid_info()
-        while bid_info == None:
-            if self.debug:
-                print "Waiting for {}'s bid info to be available".format(player_name)
-            time.sleep(5)
-            bid_info = player.get_bid_info()
+        bid_info = self.wait_for_valid_output(player.get_bid_info, debug_message="Waiting for {}'s bid_info to be available".format(player_name))
+        if bid_info == None:
+            return None
+
         # populate the username since we have that info here
         player_id = bid_info["bidder"]
         player_name = self.smear.get_players()[player_id].name
@@ -108,18 +117,44 @@ class SmearEngineApi:
                 player = player_itr
         if player == None:
             print "Error: unable to find {}".format(player_name)
-            return None
+            return False
         player.save_bid(bid)
+        return True
 
 
     def get_high_bid(self):
         high_bid = 0
         player_id = 0
         username = ""
-        while not self.smear.all_bids_are_in():
-            if self.debug:
-                print "Waiting for all bids to come in"
-            time.sleep(5)
+        bids_are_in = self.wait_for_valid_output(self.smear.all_bids_are_in, debug_message="Waiting for all bids to come in")
+        if not bids_are_in:
+            return None, None
         high_bid, player_id = self.smear.get_bid_and_bidder()
         username = self.smear.get_players()[player_id].name
         return high_bid, username
+
+
+    def get_playing_info_for_player(self, player_name):
+        player = None
+        for player_itr in self.smear.get_players():
+            if player_itr.name == player_name:
+                player = player_itr
+        if player == None:
+            print "Error: unable to find {}".format(player_name)
+            return None
+        playing_info = self.wait_for_valid_output(player.get_playing_info, debug_message="Waiting for {}'s playing_info to be available".format(player_name))
+        return playing_info
+
+
+    def submit_card_to_play_for_player(self, player_name, card_to_play):
+        player = None
+        for player_itr in self.smear.get_players():
+            if player_itr.name == player_name:
+                player = player_itr
+        if player == None:
+            print "Error: unable to find {}".format(player_name)
+            return False
+        if not player.save_card_to_play(card_to_play):
+            print "Error: unable to play {}, likely couldn't find the card in hand".format(str(card_to_play))
+            return False
+        return True
