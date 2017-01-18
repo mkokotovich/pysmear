@@ -126,7 +126,7 @@ class InteractivePlayer(Player):
         self.bidding_logic.save_bid(bid)
 
     def save_trump(self, trump):
-        self.bidding_logic.save_trump(trump)
+        return self.bidding_logic.save_trump(trump)
 
     def get_playing_info(self):
         return self.playing_logic.get_playing_info()

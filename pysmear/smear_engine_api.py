@@ -91,6 +91,10 @@ class SmearEngineApi:
         return cards
 
 
+    def get_hand_id(self):
+        return self.smear.get_hand_id()
+
+
     def get_bid_info_for_player(self, player_name):
         player = None
         for player_itr in self.smear.get_players():
@@ -122,16 +126,36 @@ class SmearEngineApi:
         return True
 
 
-    def get_high_bid(self):
+    def get_high_bid(self, hand_id):
         high_bid = 0
         player_id = 0
         username = ""
         bids_are_in = self.wait_for_valid_output(self.smear.all_bids_are_in, debug_message="Waiting for all bids to come in")
         if not bids_are_in:
             return None, None
-        high_bid, player_id = self.smear.get_bid_and_bidder()
-        username = self.smear.get_players()[player_id].name
+        high_bid, player_id = self.smear.get_bid_and_bidder(hand_id)
+        if player_id is not None:
+            username = self.smear.get_players()[player_id].name
         return high_bid, username
+
+
+    def get_trump(self):
+        trump = self.wait_for_valid_output(self.smear.get_trump, debug_message="Waiting for trump to be selected")
+        return trump
+
+
+    def submit_trump_for_player(self, player_name, trump):
+        player = None
+        for player_itr in self.smear.get_players():
+            if player_itr.name == player_name:
+                player = player_itr
+        if player == None:
+            print "Error: unable to find {}".format(player_name)
+            return False
+        if not player.save_trump(trump):
+            print "Error: unable to submit trump {}".format(trump)
+            return False
+        return True
 
 
     def get_playing_info_for_player(self, player_name):

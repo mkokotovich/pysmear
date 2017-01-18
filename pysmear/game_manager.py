@@ -46,11 +46,24 @@ class SmearGameManager:
     def is_game_over(self):
         return self.game_over
 
+    def get_hand_id(self):
+        return self.hand_manager.current_hand_id
+
     def all_bids_are_in(self):
         return self.hand_manager.all_bids_are_in
 
-    def get_bid_and_bidder(self):
-        return self.hand_manager.current_hand.bid, self.hand_manager.current_hand.bidder
+    def get_trump(self):
+        trump = self.hand_manager.current_hand.trump
+        if len(trump) == 0:
+            trump = None
+        return trump
+
+    def get_bid_and_bidder(self, hand_id):
+        if self.hand_manager.current_hand_id == hand_id and not self.hand_manager.forced_two_set:
+            return self.hand_manager.current_hand.bid, self.hand_manager.current_hand.bidder
+        else:
+            # This would happen if the dealer was forced to take a two-set and then next hand was dealt
+            return 0, None
 
     def next_dealer(self):
         self.dealer = self.dealer + 1

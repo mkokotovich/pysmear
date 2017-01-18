@@ -39,6 +39,7 @@ class SmearHandManager:
         if self.num_players * cards_to_deal > self.deck.size:
             raise ValueError("num_players ({}) times cards_to_deal ({}) is larger than the size of the deck ({})".format(self.num_players, cards_to_deal, deck.size))
         self.reset_players()
+        self.current_hand_id = 0
         self.current_hand = SmearHand(self.num_players, debug)
         self.scores = {}
         self.current_low_id = 0
@@ -61,6 +62,7 @@ class SmearHandManager:
     def reset_for_next_hand(self):
         self.reset_players()
         self.deal_new_deck()
+        self.current_hand_id += 1
         self.current_hand = SmearHand(self.num_players, self.debug)
         self.scores = {}
         self.current_low_id = 0

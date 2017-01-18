@@ -39,6 +39,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
 
     def save_trump(self, trump):
         self.player_bid_trump = trump
+        return True
 
     def get_bid_from_player(self):
         while self.player_bid == None:
