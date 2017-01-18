@@ -29,8 +29,6 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
 
     def save_bid_info(self, current_hand, force_two):
         self.bid_info = self.convert_bid_info_to_dict(current_hand, force_two)
-        # TODO: remove this later
-        #self.save_bid(2, "Spades")
 
     def get_bid_info(self):
         return self.bid_info
@@ -38,7 +36,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
     def save_bid(self, bid):
         self.player_bid = bid
 
-    def save_bid(self, trump):
+    def save_trump(self, trump):
         self.player_bid_trump = trump
 
     def get_bid_from_player(self):

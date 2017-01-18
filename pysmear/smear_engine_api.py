@@ -58,6 +58,8 @@ class SmearEngineApi:
 
 
     def finish_game(self):
+        if self.debug:
+            print "Finishing game"
         self.thread.join()
 
     
@@ -67,9 +69,12 @@ class SmearEngineApi:
             if player_itr.name == player_name:
                 player = player_itr
         if player == None:
+            print "Error: unable to find {}".format(player_name)
             return None
         cards = player.get_hand()
         while len(cards) == 0:
+            if self.debug:
+                print "Waiting for {}'s hand to be available".format(player_name)
             time.sleep(5)
             cards = player.get_hand()
         return cards
@@ -81,9 +86,12 @@ class SmearEngineApi:
             if player_itr.name == player_name:
                 player = player_itr
         if player == None:
+            print "Error: unable to find {}".format(player_name)
             return None
         bid_info = player.get_bid_info()
         while bid_info == None:
+            if self.debug:
+                print "Waiting for {}'s bid info to be available".format(player_name)
             time.sleep(5)
             bid_info = player.get_bid_info()
         # populate the username since we have that info here
@@ -99,6 +107,7 @@ class SmearEngineApi:
             if player_itr.name == player_name:
                 player = player_itr
         if player == None:
+            print "Error: unable to find {}".format(player_name)
             return None
         player.save_bid(bid)
 
@@ -108,6 +117,8 @@ class SmearEngineApi:
         player_id = 0
         username = ""
         while not self.smear.all_bids_are_in():
+            if self.debug:
+                print "Waiting for all bids to come in"
             time.sleep(5)
         high_bid, player_id = self.smear.get_bid_and_bidder()
         username = self.smear.get_players()[player_id].name
