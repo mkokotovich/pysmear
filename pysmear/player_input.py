@@ -13,13 +13,18 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         self.reset()
 
     def reset(self):
+        self.reset_bid_info()
+        self.reset_playing_info()
+
+    def reset_bid_info(self):
         self.bid_info = None
         self.player_bid = None 
         self.player_bid_trump = None
+
+    def reset_playing_info(self):
         self.playing_info = None
         self.player_card_index = None
         self.my_hand = None
-
 
     def convert_bid_info_to_dict(self, current_hand, force_two):
         bid_info = {}
@@ -56,6 +61,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
 
     def declare_bid(self):
         bid = self.get_bid_from_player()
+        self.reset_bid_info()
         return bid
 
     def declare_trump(self):
@@ -101,4 +107,5 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
     def choose_card(self, current_hand, my_hand):
         self.save_playing_info(current_hand, my_hand)
         card_index = self.get_card_index_to_play_from_player()
+        self.reset_playing_info()
         return card_index

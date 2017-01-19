@@ -132,4 +132,4 @@ class InteractivePlayer(Player):
         return self.playing_logic.get_playing_info()
 
     def save_card_to_play(self, card_to_play):
-        self.bidding_logic.save_card_to_play(card_to_play)
+        return self.bidding_logic.save_card_to_play(card_to_play)
