@@ -70,7 +70,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
 
     def convert_playing_info_to_dict(self, current_hand, my_hand):
         playing_info = {}
-        playing_info['current_trick'] = [ { "suit": card.suit, "value": card.value} for card in current_hand.current_trick.cards ]
+        playing_info['cards_played'] = current_hand.current_trick.get_cards_played()
         card = current_hand.current_trick.current_winning_card
         playing_info['current_winning_card'] = { "suit": card.suit, "value": card.value } if card is not None else { "suit": "", "value": "" }
         playing_info['lead_suit'] = current_hand.current_trick.lead_suit

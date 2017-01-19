@@ -182,3 +182,25 @@ class SmearEngineApi:
             print "Error: unable to play {}, likely couldn't find the card in hand".format(str(card_to_play))
             return False
         return True
+
+
+    def get_trick_results_for_player(self, player_name):
+        player = None
+        for player_itr in self.smear.get_players():
+            if player_itr.name == player_name:
+                player = player_itr
+        if player == None:
+            print "Error: unable to find {}".format(player_name)
+            return None
+        trick_results = self.wait_for_valid_output(player.get_results_of_trick, debug_message="Waiting for {}'s trick results to be available".format(player_name))
+
+        # populate the usernames since we have that info here
+        player_id = trick_results["winner"]
+        player_name = self.smear.get_players()[player_id].name
+        trick_results["winner"] = player_name
+        for card_played in trick_results["cards_played"]:
+            player_id = card_played["username"]
+            player_name = self.smear.get_players()[player_id].name
+            card_played["username"] = player_name
+
+        return trick_results

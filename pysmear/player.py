@@ -16,6 +16,7 @@ class Player(object):
         self.bid_trump = None
         self.is_bidder = False
         self.debug = debug
+        self.trick_results = None
         if initial_cards:
             self.hand += initial_cards
         self.name = player_id
@@ -28,6 +29,7 @@ class Player(object):
         self.bid = 0
         self.bid_trump = None
         self.is_bidder = False
+        self.trick_results = None
 
     def set_initial_cards(self, initial_cards):
         self.hand = pydealer.Stack()
@@ -98,6 +100,14 @@ class Player(object):
 
     def add_cards_to_pile(self, cards):
         self.pile += cards
+
+    def save_results_of_trick(self, winner_id, cards_played):
+        self.trick_results = { "winner": winner_id, "cards_played": cards_played }
+
+    def get_results_of_trick(self):
+        results = self.trick_results
+        self.trick_results = None
+        return results
 
     def __str__(self):
         return "{}: {}".format(self.name, " ".join(x.abbrev for x in self.hand))

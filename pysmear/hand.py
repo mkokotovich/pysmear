@@ -28,6 +28,8 @@ class SmearHand:
     def prepare_for_next_trick(self):
         self.current_trick = Trick(self.trump, self.debug)
 
+    def get_cards_played(self):
+        return self.current_trick.get_cards_played()
 
 # A hand is one deal, play until all cards are out, and tally the score iteration
 class SmearHandManager:
@@ -204,6 +206,10 @@ class SmearHandManager:
         cards = self.current_hand.current_trick.get_all_cards_as_stack()
         winner_id = self.current_hand.current_trick.get_winner_id()
         self.players[winner_id].add_cards_to_pile(cards)
+        # Tell each player the results of the trick
+        for i in range(0, self.num_players):
+            self.players[i].save_results_of_trick(winner_id, self.current_hand.get_cards_played())
+        # Reset for the next trick
         self.current_hand.prepare_for_next_trick()
         self.current_hand.first_player = winner_id
         if self.debug:

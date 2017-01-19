@@ -10,6 +10,8 @@ class Trick:
     def __init__(self, trump, debug=False):
         # This list is in order of cards played
         self.cards = []
+        # This is a list of cards played with the player who played them
+        self.cards_played = []
         self.trump = trump 
         self.lead_suit = ""
         self.current_winner_id = 0
@@ -46,6 +48,7 @@ class Trick:
             self.current_winning_card = card
             self.current_winner_id = player_id
         self.cards.append(card)
+        self.cards_played.append({ "username": player_id, "card": { "suit": card.suit, "value": card.value }})
 
     def get_winner_id(self):
         return self.current_winner_id
@@ -55,3 +58,6 @@ class Trick:
         for x in self.cards:
             stack += [x]
         return stack
+
+    def get_cards_played(self):
+        return self.cards_played
