@@ -167,6 +167,13 @@ class SmearEngineApi:
             print "Error: unable to find {}".format(player_name)
             return None
         playing_info = self.wait_for_valid_output(player.get_playing_info, debug_message="Waiting for {}'s playing_info to be available".format(player_name))
+
+        # populate the usernames since we have that info here
+        for i in range(0, len(playing_info["cards_played"])):
+            player_id = playing_info["cards_played"][i]["username"]
+            player_name = self.smear.get_players()[player_id].name
+            playing_info["cards_played"][i]["username"] = player_name
+
         return playing_info
 
 
@@ -198,9 +205,9 @@ class SmearEngineApi:
         player_id = trick_results["winner"]
         player_name = self.smear.get_players()[player_id].name
         trick_results["winner"] = player_name
-        for card_played in trick_results["cards_played"]:
-            player_id = card_played["username"]
+        for i in range(0, len(trick_results["cards_played"])):
+            player_id = trick_results["cards_played"][i]["username"]
             player_name = self.smear.get_players()[player_id].name
-            card_played["username"] = player_name
+            trick_results["cards_played"][i]["username"] = player_name
 
         return trick_results
