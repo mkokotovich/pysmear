@@ -1,15 +1,35 @@
 # API for playing the card game smear
 
 import sys
-from threading import Thread
+from threading import Thread, Event
+import Queue
 from game_manager import SmearGameManager
 from player import *
 #from stats import SmearStats
 
-def play_game_as_thread(smear):
-    smear.play_hand()
-    #while not smear.is_game_over():
-    #    smear.play_hand()
+def play_game_as_thread(smear, thread_stop_request):
+    while not smear.is_game_over() and not thread_stop_request.isSet():
+        print "Playing another hand"
+        try:
+            smear.play_hand()
+        except:
+            e = sys.exc_info()[0]
+            print "Game encountered a fatal error: {}".format(str(e))
+    if thread_stop_request.isSet():
+        print "Thread was quit forcefully, game is not finished"
+    else:
+        print "Game is finished, exiting thread"
+
+
+def stop_game_after_timeout(timeout_seconds, thread_stop_request, cleanup_thread_stop_q):
+    # Either way we exit (timeout or interrupt) we will signal the stop request 
+    try:
+        cleanup_thread_stop_q.get(timeout=timeout_seconds)
+        print "Interrupted - sending signal to game thread and stopping"
+    except Queue.Empty:
+        print "Waited {} seconds, stopping game forcefully".format(timeout_seconds)
+    thread_stop_request.set()
+
 
 class SmearEngineApi:
     def __init__(self, debug=False):
@@ -17,7 +37,11 @@ class SmearEngineApi:
         self.desired_players = 0
         self.smear = None
         self.thread = None
+        self.cleanup_thread = None
         self.timeout_after = 600
+        self.game_timeout = 36000
+        self.thread_stop_request = Event()
+        self.cleanup_thread_stop_q = Queue.Queue()
 
     def wait_for_valid_output(self, function_to_call, debug_message=None):
         sleep_interval = 5
@@ -42,7 +66,7 @@ class SmearEngineApi:
 
     def add_player(self, player_id, interactive=False):
         if interactive:
-            self.smear.add_player(InteractivePlayer(player_id, debug=self.debug))
+            self.smear.add_player(InteractivePlayer(player_id, debug=self.debug, stop_request=self.thread_stop_request))
         else:
             self.smear.add_player(Player(player_id, debug=self.debug))
 
@@ -69,14 +93,24 @@ class SmearEngineApi:
         print "Number of players: " + str(len(self.smear.get_players()))
         self.smear.reset_game()
         self.smear.start_game()
-        self.thread = Thread(target=play_game_as_thread, args = ( self.smear, ))
+
+        # Start a thread to play the game in the background
+        self.thread = Thread(target=play_game_as_thread, args = ( self.smear, self.thread_stop_request,  ))
         self.thread.start()
+
+        # Start a thread to force the game to stop after self.game_timeout seconds.
+        # This is to clean up the server so we don't leak resources over time
+        self.cleanup_thread = Thread(target=stop_game_after_timeout, args = ( self.game_timeout, self.thread_stop_request, self.cleanup_thread_stop_q,  ))
+        self.cleanup_thread.start()
 
 
     def finish_game(self):
         if self.debug:
             print "Finishing game"
+        self.thread_stop_request.set()
         self.thread.join()
+        self.cleanup_thread_stop.put(None)
+        self.cleanup_thread.join()
 
     
     def get_hand_for_player(self, player_name):
@@ -171,8 +205,9 @@ class SmearEngineApi:
         # populate the usernames since we have that info here
         for i in range(0, len(playing_info["cards_played"])):
             player_id = playing_info["cards_played"][i]["username"]
-            player_name = self.smear.get_players()[player_id].name
-            playing_info["cards_played"][i]["username"] = player_name
+            if type(0) == type(player_id):
+                player_name = self.smear.get_players()[player_id].name
+                playing_info["cards_played"][i]["username"] = player_name
 
         return playing_info
 
@@ -207,7 +242,8 @@ class SmearEngineApi:
         trick_results["winner"] = player_name
         for i in range(0, len(trick_results["cards_played"])):
             player_id = trick_results["cards_played"][i]["username"]
-            player_name = self.smear.get_players()[player_id].name
-            trick_results["cards_played"][i]["username"] = player_name
+            if type(0) == type(player_id):
+                player_name = self.smear.get_players()[player_id].name
+                trick_results["cards_played"][i]["username"] = player_name
 
         return trick_results

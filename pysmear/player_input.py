@@ -8,8 +8,9 @@ import json
 import time
 
 class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
-    def __init__(self, debug):
+    def __init__(self, debug, stop_request=None):
         self.debug = debug
+        self.stop_request = stop_request
         self.reset()
 
     def reset(self):
@@ -25,6 +26,13 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         self.playing_info = None
         self.player_card_index = None
         self.my_hand = None
+
+
+    def need_to_stop(self):
+        stop = False
+        if self.stop_request is not None:
+            stop = self.stop_request.isSet() 
+        return stop
 
     def convert_bid_info_to_dict(self, current_hand, force_two):
         bid_info = {}
@@ -47,12 +55,12 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         return True
 
     def get_bid_from_player(self):
-        while self.player_bid == None:
+        while self.player_bid == None and not self.need_to_stop():
             time.sleep(5)
         return self.player_bid
 
     def get_trump_from_player(self):
-        while self.player_bid_trump == None:
+        while self.player_bid_trump == None and not self.need_to_stop():
             time.sleep(5)
         return self.player_bid_trump
 
@@ -100,7 +108,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         return True
 
     def get_card_index_to_play_from_player(self):
-        while self.player_card_index == None:
+        while self.player_card_index == None and not self.need_to_stop():
             time.sleep(5)
         return self.player_card_index
 
