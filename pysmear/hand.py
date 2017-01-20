@@ -16,6 +16,7 @@ class SmearHand:
         self.first_player = 0
         self.debug = debug
         self.current_trick = Trick(self.trump, debug)
+        self.all_bids = []
 
     def set_trump(self, trump):
         self.trump = trump
@@ -30,6 +31,13 @@ class SmearHand:
 
     def get_cards_played(self):
         return self.current_trick.get_cards_played()
+
+    def add_bid(self, player_id, bid):
+        self.all_bids.append({ "game_id": "", "username": player_id, "bid": bid })
+
+    def get_all_bids(self):
+        return self.all_bids
+
 
 # A hand is one deal, play until all cards are out, and tally the score iteration
 class SmearHandManager:
@@ -148,6 +156,8 @@ class SmearHandManager:
             next_id = 0
         return next_id
 
+
+
     def get_bids(self, dealer_id):
         self.current_hand.bid = 0
         self.current_hand.bidder = 0
@@ -167,6 +177,7 @@ class SmearHandManager:
             if bid > self.current_hand.bid:
                 self.current_hand.bid = bid
                 self.current_hand.bidder = current_bidder
+            self.current_hand.add_bid(current_bidder, bid)
         self.all_bids_are_in = True
         if self.current_hand.bid == 0:
             # No one bid, the dealer takes a two set

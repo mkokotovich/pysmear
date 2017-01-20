@@ -39,6 +39,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         bid_info['force_two'] = force_two
         bid_info['current_bid'] = current_hand.bid
         bid_info['bidder'] = current_hand.bidder
+        bid_info['all_bids'] = current_hand.get_all_bids()
         return bid_info
 
     def save_bid_info(self, current_hand, force_two):

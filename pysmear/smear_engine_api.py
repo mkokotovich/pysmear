@@ -145,6 +145,11 @@ class SmearEngineApi:
         player_id = bid_info["bidder"]
         player_name = self.smear.get_players()[player_id].name
         bid_info["bidder"] = player_name
+        for i in range(0, len(bid_info["all_bids"])):
+            player_id = bid_info["all_bids"][i]["username"]
+            if type(0) == type(player_id):
+                player_name = self.smear.get_players()[player_id].name
+                bid_info["all_bids"][i]["username"] = player_name
         return bid_info
 
 
@@ -167,10 +172,22 @@ class SmearEngineApi:
         bids_are_in = self.wait_for_valid_output(self.smear.all_bids_are_in, debug_message="Waiting for all bids to come in")
         if not bids_are_in:
             return None, None
+
         high_bid, player_id = self.smear.get_bid_and_bidder(hand_id)
         if player_id is not None:
             username = self.smear.get_players()[player_id].name
-        return high_bid, username
+
+        high_bid_info = {}
+        high_bid_info['force_two'] = False
+        high_bid_info['current_bid'] = high_bid
+        high_bid_info['bidder'] = username
+        high_bid_info['all_bids'] = self.smear.hand_manager.current_hand.get_all_bids()
+        for i in range(0, len(high_bid_info["all_bids"])):
+            player_id = high_bid_info["all_bids"][i]["username"]
+            if type(0) == type(player_id):
+                player_name = self.smear.get_players()[player_id].name
+                high_bid_info["all_bids"][i]["username"] = player_name
+        return high_bid_info
 
 
     def get_trump(self):
