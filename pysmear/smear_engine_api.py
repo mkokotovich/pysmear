@@ -44,7 +44,7 @@ class SmearEngineApi:
         self.cleanup_thread_stop_q = Queue.Queue()
 
     def wait_for_valid_output(self, function_to_call, debug_message=None):
-        sleep_interval = 5
+        sleep_interval = 2
         time_waited = 0
         ret = function_to_call()
         while (ret == None or ret == False) and time_waited < self.timeout_after:

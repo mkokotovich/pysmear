@@ -11,6 +11,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
     def __init__(self, debug, stop_request=None):
         self.debug = debug
         self.stop_request = stop_request
+        self.sleep_interval = 2
         self.reset()
 
     def reset(self):
@@ -57,12 +58,12 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
 
     def get_bid_from_player(self):
         while self.player_bid == None and not self.need_to_stop():
-            time.sleep(5)
+            time.sleep(self.sleep_interval)
         return self.player_bid
 
     def get_trump_from_player(self):
         while self.player_bid_trump == None and not self.need_to_stop():
-            time.sleep(5)
+            time.sleep(self.sleep_interval)
         return self.player_bid_trump
 
     def calculate_bid(self, current_hand, my_hand, force_two=False):
@@ -110,7 +111,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
 
     def get_card_index_to_play_from_player(self):
         while self.player_card_index == None and not self.need_to_stop():
-            time.sleep(5)
+            time.sleep(self.sleep_interval)
         return self.player_card_index
 
     def choose_card(self, current_hand, my_hand):

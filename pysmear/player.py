@@ -29,7 +29,6 @@ class Player(object):
         self.bid = 0
         self.bid_trump = None
         self.is_bidder = False
-        self.trick_results = None
 
     def set_initial_cards(self, initial_cards):
         self.hand = pydealer.Stack()
