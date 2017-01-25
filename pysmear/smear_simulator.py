@@ -12,7 +12,7 @@ class SmearSimulator:
         self.smear = SmearGameManager(cards_to_deal=6, debug=debug)
         self.smear.add_player(Player("player0", debug=debug))
         self.smear.add_player(Player("player1", debug=debug))
-        self.smear.add_player(InteractivePlayer("player2", debug=debug))
+        self.smear.add_player(Player("player2", debug=debug))
         #self.smear_stats = SmearStats()
 
     def play_game(self):

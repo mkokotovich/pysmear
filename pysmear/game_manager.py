@@ -18,6 +18,7 @@ class SmearGameManager:
         self.score_to_play_to = score_to_play_to
         self.hand_manager = None
         self.dealer = 0
+        self.all_hand_results = {}
 
     def initialize_default_players(self):
         for i in range(0, self.num_players):
@@ -64,6 +65,9 @@ class SmearGameManager:
         else:
             # This would happen if the dealer was forced to take a two-set and then next hand was dealt
             return 0, None
+
+    def get_hand_results(self, hand_id):
+        return self.all_hand_results[hand_id]
 
     def next_dealer(self):
         self.dealer = self.dealer + 1
@@ -137,3 +141,5 @@ class SmearGameManager:
                 self.hand_manager.play_trick()
         # Update scores
         self.update_scores(self.hand_manager.get_scores(self.dealer), self.hand_manager.current_hand.bidder)
+        # Save hand results
+        self.all_hand_results[self.hand_manager.current_hand_id] = self.hand_manager.hand_results

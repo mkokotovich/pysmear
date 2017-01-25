@@ -56,6 +56,7 @@ class SmearHandManager:
         self.current_low = None
         self.all_bids_are_in = False
         self.forced_two_set = False
+        self.hand_results = {}
         self.debug = debug
 
     def reset_players(self):
@@ -95,35 +96,65 @@ class SmearHandManager:
             print "Hand isn't over yet"
             return None
         self.scores = {}
-        current_winner_ids = []
-        current_winning_score = 0
+        current_game_winner_ids = []
+        current_game_winning_score = 0
         current_high_id = 0
         current_high = None
+        jack_id = None
+        jick_id = None
         for i in range(0, self.num_players):
+            # Initialize each player's score
+            self.scores[i] = 0
+            # Calculate the game score
             game_score = self.players[i].calculate_game_score()
-            if current_winning_score < game_score:
-                current_winning_score = game_score
-                current_winner_ids = [ i ]
-            elif current_winning_score == game_score:
-                current_winner_ids.append(i)
+            if current_game_winning_score < game_score:
+                current_game_winning_score = game_score
+                current_game_winner_ids = [ i ]
+            elif current_game_winning_score == game_score:
+                current_game_winner_ids.append(i)
+            # Check to see if we have high
             high = self.players[i].get_high_trump_card(self.current_hand.trump)
             if (not high == None) and (current_high == None or utils.is_less_than(current_high, high, self.current_hand.trump)):
                 current_high = high
                 current_high_id = i
-            self.scores[i] = self.players[i].get_jacks_and_jicks_count(self.current_hand.trump)
-        # No ties for game, there is just no winner then
-        if len(current_winner_ids) == 1:
-            self.scores[current_winner_ids[0]] += 1
-            if self.debug:
-                print "{} won game with {} points".format(self.players[current_winner_ids[0]].name, current_winning_score)
-        elif self.debug:
-            print "No one won game, there was a tie at {} points between {}".format(current_winning_score, ", ".join(self.players[x].name for x in current_winner_ids))
+            # Check to see if we have jack
+            if self.players[i].has_jack_of_trump(self.current_hand.trump):
+                jack_id = i
+            # Check to see if we have jick
+            if self.players[i].has_jick_of_trump(self.current_hand.trump):
+                jick_id = i
+        # Award high
         self.scores[current_high_id] += 1
+        self.hand_results["high_winner"] = current_high_id
         if self.debug:
             print "{} won high with a {}".format(self.players[current_high_id].name, current_high)
+        # Award low
         self.scores[self.current_low_id] += 1
+        self.hand_results["low_winner"] = self.current_low_id
         if self.debug:
             print "{} won low with a {}".format(self.players[self.current_low_id].name, self.current_low)
+        # Award jack, if it was won
+        if jack_id is not None:
+            self.scores[jack_id] += 1
+            self.hand_results["jack_winner"] = jack_id
+            if self.debug:
+                print "{} won jack".format(self.players[jack_id].name)
+        # Award jick, if it was won
+        if jick_id is not None:
+            self.scores[jick_id] += 1
+            self.hand_results["jick_winner"] = jick_id
+            if self.debug:
+                print "{} won jick".format(self.players[jick_id].name)
+        # Award game. No ties for game, there is just no winner then
+        if len(current_game_winner_ids) == 1:
+            self.scores[current_game_winner_ids[0]] += 1
+            self.hand_results["game_winner"] = current_game_winner_ids[0]
+            if self.debug:
+                print "{} won game with {} points".format(self.players[current_game_winner_ids[0]].name, current_game_winning_score)
+        else:
+            self.hand_results["game_winner"] = ""
+            if self.debug:
+                print "No one won game, there was a tie at {} points between {}".format(current_game_winning_score, ", ".join(self.players[x].name for x in current_game_winner_ids))
         # Check to see if bidder was set
         if self.scores[self.current_hand.bidder] < self.current_hand.bid:
             if self.debug:

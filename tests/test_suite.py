@@ -1,8 +1,9 @@
 import unittest
 
 from test_bidding_logic import TestBiddingLogic
+from test_smear_engine_api import TestSmearEngineApi
 
-TESTS = [ TestBiddingLogic ]
+TESTS = [ TestBiddingLogic, TestSmearEngineApi ]
 
 
 def main():

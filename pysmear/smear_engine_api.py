@@ -43,10 +43,10 @@ class SmearEngineApi:
         self.thread_stop_request = Event()
         self.cleanup_thread_stop_q = Queue.Queue()
 
-    def wait_for_valid_output(self, function_to_call, debug_message=None):
+    def wait_for_valid_output(self, function_to_call, debug_message, args=tuple()):
         sleep_interval = 2
         time_waited = 0
-        ret = function_to_call()
+        ret = function_to_call(*args)
         while (ret == None or ret == False) and time_waited < self.timeout_after:
             #sleep and check again
             if self.debug:
@@ -264,3 +264,19 @@ class SmearEngineApi:
                 trick_results["cards_played"][i]["username"] = player_name
 
         return trick_results
+
+
+    def get_hand_results(self, hand_id):
+        args = ( hand_id, )
+        hand_results = self.wait_for_valid_output(self.smear.get_hand_results, debug_message="Waiting for hand results to be available", args=args)
+
+        # populate the usernames since we have that info here
+        for key, value in hand_results.items():
+            player_id = value
+            if type(0) == type(player_id):
+                player_name = self.smear.get_players()[player_id].name
+                hand_results[key] = player_name
+            
+        return hand_results
+
+

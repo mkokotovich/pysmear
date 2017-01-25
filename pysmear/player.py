@@ -89,13 +89,23 @@ class Player(object):
             high_trump = self.pile[my_trump[-1]]
         return high_trump
 
-    def get_jacks_and_jicks_count(self, trump):
+    def has_jack_of_trump(self, trump):
         my_trump = utils.get_trump_indices(trump, self.pile)
-        points = 0
+        has_jack = False
         for idx in my_trump:
-            if self.pile[idx].value == "Jack":
-                points += 1
-        return points
+            if self.pile[idx].value == "Jack" and self.pile[idx].suit == trump:
+                has_jack = True
+                break
+        return has_jack
+
+    def has_jick_of_trump(self, trump):
+        my_trump = utils.get_trump_indices(trump, self.pile)
+        has_jick = False
+        for idx in my_trump:
+            if self.pile[idx].value == "Jack" and self.pile[idx].suit != trump:
+                has_jick = True
+                break
+        return has_jick
 
     def add_cards_to_pile(self, cards):
         self.pile += cards
