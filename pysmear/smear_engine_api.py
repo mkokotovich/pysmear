@@ -21,16 +21,6 @@ def play_game_as_thread(smear, thread_stop_request):
         print "Game is finished, exiting thread"
 
 
-def stop_game_after_timeout(timeout_seconds, thread_stop_request, cleanup_thread_stop_q):
-    # Either way we exit (timeout or interrupt) we will signal the stop request 
-    try:
-        cleanup_thread_stop_q.get(timeout=timeout_seconds)
-        print "Interrupted - sending signal to game thread and stopping"
-    except Queue.Empty:
-        print "Waited {} seconds, stopping game forcefully".format(timeout_seconds)
-    thread_stop_request.set()
-
-
 class SmearEngineApi:
     def __init__(self, debug=False):
         self.debug = debug
@@ -41,10 +31,10 @@ class SmearEngineApi:
         self.timeout_after = 600
         self.game_timeout = 36000
         self.thread_stop_request = Event()
-        self.cleanup_thread_stop_q = Queue.Queue()
+
 
     def wait_for_valid_output(self, function_to_call, debug_message, args=tuple()):
-        sleep_interval = 2
+        sleep_interval = 1
         time_waited = 0
         ret = function_to_call(*args)
         while (ret == None or ret == False) and time_waited < self.timeout_after:
@@ -98,19 +88,12 @@ class SmearEngineApi:
         self.thread = Thread(target=play_game_as_thread, args = ( self.smear, self.thread_stop_request,  ))
         self.thread.start()
 
-        # Start a thread to force the game to stop after self.game_timeout seconds.
-        # This is to clean up the server so we don't leak resources over time
-        self.cleanup_thread = Thread(target=stop_game_after_timeout, args = ( self.game_timeout, self.thread_stop_request, self.cleanup_thread_stop_q,  ))
-        self.cleanup_thread.start()
-
 
     def finish_game(self):
         if self.debug:
             print "Finishing game"
         self.thread_stop_request.set()
         self.thread.join()
-        self.cleanup_thread_stop.put(None)
-        self.cleanup_thread.join()
 
     
     def get_hand_for_player(self, player_name):

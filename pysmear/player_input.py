@@ -11,7 +11,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
     def __init__(self, debug, stop_request=None):
         self.debug = debug
         self.stop_request = stop_request
-        self.sleep_interval = 2
+        self.sleep_interval = 1
         self.reset()
 
     def reset(self):
