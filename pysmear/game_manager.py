@@ -67,7 +67,9 @@ class SmearGameManager:
             return 0, None
 
     def get_hand_results(self, hand_id):
-        return self.all_hand_results[hand_id]
+        results = self.all_hand_results[hand_id]
+        results["is_game_over"] = self.is_game_over()
+        return results
 
     def next_dealer(self):
         self.dealer = self.dealer + 1
