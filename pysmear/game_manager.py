@@ -68,7 +68,6 @@ class SmearGameManager:
 
     def get_hand_results(self, hand_id):
         results = self.all_hand_results[hand_id]
-        results["is_game_over"] = self.is_game_over()
         return results
 
     def next_dealer(self):
@@ -145,3 +144,5 @@ class SmearGameManager:
         self.update_scores(self.hand_manager.get_scores(self.dealer), self.hand_manager.current_hand.bidder)
         # Save hand results
         self.all_hand_results[self.hand_manager.current_hand_id] = self.hand_manager.hand_results
+        # Add whether or not the game is over
+        self.all_hand_results[self.hand_manager.current_hand_id]["is_game_over"] = self.is_game_over()
