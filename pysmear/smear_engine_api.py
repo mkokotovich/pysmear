@@ -31,6 +31,8 @@ class SmearEngineApi:
         self.timeout_after = 600
         self.game_timeout = 36000
         self.thread_stop_request = Event()
+        self.number_of_interactive_players = 0
+        self.players_who_are_finished = []
 
 
     def wait_for_valid_output(self, function_to_call, debug_message, args=tuple()):
@@ -49,14 +51,15 @@ class SmearEngineApi:
         return ret
 
 
-    def create_new_game(self, num_players, cards_to_deal=6):
-        self.smear = SmearGameManager(cards_to_deal=cards_to_deal, debug=self.debug)
+    def create_new_game(self, num_players, cards_to_deal=6, score_to_play_to=11):
+        self.smear = SmearGameManager(cards_to_deal=cards_to_deal, score_to_play_to=score_to_play_to, debug=self.debug)
         self.desired_players = num_players
 
 
     def add_player(self, player_id, interactive=False):
         if interactive:
             self.smear.add_player(InteractivePlayer(player_id, debug=self.debug, stop_request=self.thread_stop_request))
+            self.number_of_interactive_players += 1
         else:
             self.smear.add_player(Player(player_id, debug=self.debug))
 
@@ -87,6 +90,15 @@ class SmearEngineApi:
         # Start a thread to play the game in the background
         self.thread = Thread(target=play_game_as_thread, args = ( self.smear, self.thread_stop_request,  ))
         self.thread.start()
+
+
+    def player_is_finished(self, player_name):
+        ready_to_delete = False
+        if player_name not in self.players_who_are_finished:
+            self.players_who_are_finished.append(player_name)
+        if len(self.players_who_are_finished) == self.number_of_interactive_players:
+            ready_to_delete = True
+        return ready_to_delete
 
 
     def finish_game(self):
