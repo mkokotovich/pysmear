@@ -99,6 +99,7 @@ class SmearEngineApi:
 
         # Start a thread to play the game in the background
         self.thread = Thread(target=play_game_as_thread, args = ( self.smear, self.thread_stop_request,  ))
+        self.thread.daemon = True
         self.thread.start()
 
 
