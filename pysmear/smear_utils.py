@@ -62,6 +62,7 @@ class SmearUtils():
     @staticmethod
     def insert_card_into_sorted_index_list(indices, stack, card_index):
         # Assumes sorted from smallest to largest
+        inserted = False
         for i in range(0, len(indices)):
             # Loop through indices, comparing card in stack at that index to
             # card in stack at card_index
@@ -71,7 +72,11 @@ class SmearUtils():
             else:
                 # New card is smaller, insert here
                 indices.insert(i, card_index)
+                inserted = True;
                 break
+        if not inserted:
+            # Card is larger than all members, need to insert at end
+            indices.append(card_index)
 
 
     # Sorted from smallest to largest
