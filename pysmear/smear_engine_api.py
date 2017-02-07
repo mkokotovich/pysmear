@@ -25,6 +25,7 @@ class SmearEngineApi:
     def __init__(self, debug=False):
         self.debug = debug
         self.desired_players = 0
+        self.desired_human_players = 0
         self.smear = None
         self.thread = None
         self.cleanup_thread = None
@@ -51,9 +52,10 @@ class SmearEngineApi:
         return ret
 
 
-    def create_new_game(self, num_players, cards_to_deal=6, score_to_play_to=11):
+    def create_new_game(self, num_players, num_human_players, cards_to_deal=6, score_to_play_to=11):
         self.smear = SmearGameManager(cards_to_deal=cards_to_deal, score_to_play_to=score_to_play_to, debug=self.debug)
         self.desired_players = num_players
+        self.desired_human_players = num_human_players
 
 
     def add_player(self, player_id, interactive=False):
@@ -68,8 +70,16 @@ class SmearEngineApi:
         return self.desired_players == len(self.smear.get_players())
 
 
-    def get_number_of_players(self):
+    def all_human_players_joined(self):
+        return self.desired_human_players == self.number_of_interactive_players
+
+
+    def get_desired_number_of_players(self):
         return self.desired_players
+
+
+    def get_desired_number_of_human_players(self):
+        return self.desired_human_players
 
 
     def get_player_names(self):
