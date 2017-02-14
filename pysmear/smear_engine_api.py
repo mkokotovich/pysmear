@@ -149,13 +149,14 @@ class SmearEngineApi:
 
         # populate the username since we have that info here
         player_id = bid_info["bidder"]
-        player_name = self.smear.get_players()[player_id].name
-        bid_info["bidder"] = player_name
-        for i in range(0, len(bid_info["all_bids"])):
-            player_id = bid_info["all_bids"][i]["username"]
-            if type(0) == type(player_id):
-                player_name = self.smear.get_players()[player_id].name
-                bid_info["all_bids"][i]["username"] = player_name
+        if type(0) == type(player_id):
+            player_name = self.smear.get_players()[player_id].name
+            bid_info["bidder"] = player_name
+            for i in range(0, len(bid_info["all_bids"])):
+                player_id = bid_info["all_bids"][i]["username"]
+                if type(0) == type(player_id):
+                    player_name = self.smear.get_players()[player_id].name
+                    bid_info["all_bids"][i]["username"] = player_name
         return bid_info
 
 
@@ -261,13 +262,14 @@ class SmearEngineApi:
 
         # populate the usernames since we have that info here
         player_id = trick_results["winner"]
-        player_name = self.smear.get_players()[player_id].name
-        trick_results["winner"] = player_name
-        for i in range(0, len(trick_results["cards_played"])):
-            player_id = trick_results["cards_played"][i]["username"]
-            if type(0) == type(player_id):
-                player_name = self.smear.get_players()[player_id].name
-                trick_results["cards_played"][i]["username"] = player_name
+        if type(0) == type(player_id):
+            player_name = self.smear.get_players()[player_id].name
+            trick_results["winner"] = player_name
+            for i in range(0, len(trick_results["cards_played"])):
+                player_id = trick_results["cards_played"][i]["username"]
+                if type(0) == type(player_id):
+                    player_name = self.smear.get_players()[player_id].name
+                    trick_results["cards_played"][i]["username"] = player_name
 
         return trick_results
 
