@@ -50,9 +50,13 @@ class JustGreedyEnough(SmearPlayingLogic):
     def find_lowest_card_index(self, my_hand, lead_suit, trump):
         lowest_index = None
         lowest_trump_index = None
-        # First try following suit
+        # First try following suit.
         my_hand.sort(ranks=POKER_RANKS)
-        indices = my_hand.find(lead_suit, sort=True, ranks=POKER_RANKS)
+        indices = []
+        if lead_suit == trump:
+            indices = utils.get_trump_indices(trump, my_hand)
+        else:
+            indices = my_hand.find(lead_suit, sort=True, ranks=POKER_RANKS)
         if len(indices) == 0:
             indices = range(0, len(my_hand))
         for idx in indices:

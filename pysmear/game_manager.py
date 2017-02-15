@@ -19,6 +19,7 @@ class SmearGameManager:
         self.hand_manager = None
         self.dealer = 0
         self.all_hand_results = {}
+        self.all_high_bid_infos = {}
 
     def initialize_default_players(self):
         for i in range(0, self.num_players):
@@ -50,8 +51,11 @@ class SmearGameManager:
     def get_hand_id(self):
         return self.hand_manager.current_hand_id
 
-    def all_bids_are_in(self):
-        return self.hand_manager.all_bids_are_in
+    def all_bids_are_in(self, hand_id):
+        if hand_id == self.hand_manager.current_hand_id:
+            return self.hand_manager.all_bids_are_in
+        else:
+            return True
 
     def get_trump(self):
         trump = self.hand_manager.current_hand.trump
@@ -128,9 +132,29 @@ class SmearGameManager:
         msg = ""
         return msg
 
+    def generate_player_infos(self):
+        player_infos = []
+        for i in range(0, self.num_players):
+            player_info = {}
+            player_info["username"] = self.players[i].name
+            player_info["score"] = self.scores[i]
+            player_infos.append(player_info)
+        return player_infos
+
+    def get_high_bid_info(self, hand_id):
+        return self.all_high_bid_infos[hand_id]
+
+    def save_high_bid_info(self, forced_two_set):
+        bid_info = {}
+        bid_info["current_bid"] = self.hand_manager.current_hand.bid
+        bid_info["bidder"] = self.hand_manager.current_hand.bidder
+        bid_info["all_bids"] = self.hand_manager.current_hand.get_all_bids()
+        self.all_high_bid_infos[self.hand_manager.current_hand_id] = bid_info
+
     def play_hand(self):
         self.hand_manager.reset_for_next_hand()
         forced_two_set = self.hand_manager.get_bids(self.next_dealer())
+        self.save_high_bid_info(forced_two_set)
         if forced_two_set:
             # Forced set, dealer get_scores() will return appropriately
             if self.debug:
@@ -146,3 +170,5 @@ class SmearGameManager:
         self.all_hand_results[self.hand_manager.current_hand_id] = self.hand_manager.hand_results
         # Add whether or not the game is over
         self.all_hand_results[self.hand_manager.current_hand_id]["is_game_over"] = self.is_game_over()
+        # Add current scores at the end of the hand
+        self.all_hand_results[self.hand_manager.current_hand_id]["player_infos"] = self.generate_player_infos()

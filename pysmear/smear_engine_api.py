@@ -46,7 +46,7 @@ class SmearEngineApi:
                 print "Sleeping: {}".format(debug_message)
             time.sleep(sleep_interval)
             time_waited += sleep_interval
-            ret = function_to_call()
+            ret = function_to_call(*args)
         if time_waited >= self.timeout_after:
             print "Calling {} ({}) took too long, giving up.".format(str(function_to_call), debug_message)
         return ret
@@ -176,24 +176,25 @@ class SmearEngineApi:
         high_bid = 0
         player_id = 0
         username = ""
-        bids_are_in = self.wait_for_valid_output(self.smear.all_bids_are_in, debug_message="Waiting for all bids to come in")
+        args = ( hand_id, )
+        bids_are_in = self.wait_for_valid_output(self.smear.all_bids_are_in, debug_message="Waiting for all bids to come in", args=args)
         if not bids_are_in:
-            return None, None
+            return None
 
-        high_bid, player_id = self.smear.get_bid_and_bidder(hand_id)
-        if player_id is not None:
-            username = self.smear.get_players()[player_id].name
-
-        high_bid_info = {}
+        high_bid_info = self.smear.get_high_bid_info(hand_id)
         high_bid_info['force_two'] = False
-        high_bid_info['current_bid'] = high_bid
-        high_bid_info['bidder'] = username
-        high_bid_info['all_bids'] = self.smear.hand_manager.current_hand.get_all_bids()
+
+        # populate the usernames since we have that info here
+        player_id = high_bid_info["bidder"]
+        if type(0) == type(player_id):
+            high_bid_info['bidder'] = self.smear.get_players()[player_id].name
+
         for i in range(0, len(high_bid_info["all_bids"])):
             player_id = high_bid_info["all_bids"][i]["username"]
             if type(0) == type(player_id):
                 player_name = self.smear.get_players()[player_id].name
                 high_bid_info["all_bids"][i]["username"] = player_name
+
         return high_bid_info
 
 
@@ -280,10 +281,17 @@ class SmearEngineApi:
 
         # populate the usernames since we have that info here
         for key, value in hand_results.items():
-            player_id = value
-            if type(0) == type(player_id):
-                player_name = self.smear.get_players()[player_id].name
-                hand_results[key] = player_name
+            if "winner" in key:
+                player_id = value
+                if type(0) == type(player_id):
+                    player_name = self.smear.get_players()[player_id].name
+                    hand_results[key] = player_name
+            elif "player_infos" == key:
+                for pinfo in value:
+                    player_id = pinfo["username"]
+                    if type(0) == type(player_id):
+                        player_name = self.smear.get_players()[player_id].name
+                        pinfo["username"] = player_name
             
         return hand_results
 

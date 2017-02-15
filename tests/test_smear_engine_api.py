@@ -31,8 +31,9 @@ class TestSmearEngineApi(unittest.TestCase):
     # Tests
     ####################
     def test_create_new_game(self):
-        self.api.create_new_game(4)
+        self.api.create_new_game(4, 1)
         self.assertEqual(self.api.desired_players, 4)
+        self.assertEqual(self.api.desired_human_players, 1)
 
     def test_add_player_non_interactive(self):
         self.api.smear.add_player.return_value = None
