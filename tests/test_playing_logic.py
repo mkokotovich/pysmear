@@ -28,5 +28,10 @@ class TestPlayingLogic(unittest.TestCase):
         self.cards = [self.six_hearts, self.seven_hearts, self.nine_clubs, self.jack_clubs, self.queen_diamonds]
         self.my_hand = pydealer.Stack(cards=self.cards)
         index = self.pl.find_lowest_card_index(self.my_hand, self.lead_suit, self.trump)
-        self.assertEqual(index, self.cards.index(self.jack_clubs))
+        self.assertEqual(self.my_hand[index], self.jack_clubs)
 
+    def test_find_lowest_card_index_when_trump_is_lead_returns_lowest_trump(self):
+        self.cards = [self.six_hearts, self.two_spades, self.nine_clubs, self.jack_clubs, self.queen_diamonds]
+        self.my_hand = pydealer.Stack(cards=self.cards)
+        index = self.pl.find_lowest_card_index(self.my_hand, self.lead_suit, self.trump)
+        self.assertEqual(self.my_hand[index], self.two_spades)

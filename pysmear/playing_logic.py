@@ -55,6 +55,7 @@ class JustGreedyEnough(SmearPlayingLogic):
         indices = []
         if lead_suit == trump:
             indices = utils.get_trump_indices(trump, my_hand)
+            indices.reverse()
         else:
             indices = my_hand.find(lead_suit, sort=True, ranks=POKER_RANKS)
         if len(indices) == 0:
