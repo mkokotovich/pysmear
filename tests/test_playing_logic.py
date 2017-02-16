@@ -16,7 +16,12 @@ class TestPlayingLogic(unittest.TestCase):
         self.jack_clubs = pydealer.Card("Jack", "Clubs")
         self.queen_diamonds = pydealer.Card(value="Queen", suit="Diamonds")
 
-        self.ace_spades = pydealer.Card("Ace", "Spades")
+        self.two_hearts = pydealer.Card("two", "Hearts")
+        self.seven_diamonds = pydealer.Card("7", "Diamonds")
+        self.ten_clubs = pydealer.Card("10", "Clubs")
+        self.queen_spades = pydealer.Card("Queen", "Spades")
+        self.ace_diamonds = pydealer.Card("Ace", "Diamonds")
+
         self.two_diamonds = pydealer.Card("2", "Diamonds")
         self.queen_hearts = pydealer.Card("Queen", "Hearts")
         self.seven_clubs = pydealer.Card("7", "Clubs")
@@ -26,12 +31,23 @@ class TestPlayingLogic(unittest.TestCase):
 
     def test_find_lowest_card_index_when_trump_is_lead(self):
         self.cards = [self.six_hearts, self.seven_hearts, self.nine_clubs, self.jack_clubs, self.queen_diamonds]
+        self.lead_suit = "Trump"
         self.my_hand = pydealer.Stack(cards=self.cards)
         index = self.pl.find_lowest_card_index(self.my_hand, self.lead_suit, self.trump)
         self.assertEqual(self.my_hand[index], self.jack_clubs)
 
     def test_find_lowest_card_index_when_trump_is_lead_returns_lowest_trump(self):
         self.cards = [self.six_hearts, self.two_spades, self.nine_clubs, self.jack_clubs, self.queen_diamonds]
+        self.lead_suit = "Trump"
         self.my_hand = pydealer.Stack(cards=self.cards)
         index = self.pl.find_lowest_card_index(self.my_hand, self.lead_suit, self.trump)
         self.assertEqual(self.my_hand[index], self.two_spades)
+
+    def test_find_lowest_card_index_handles_jick_being_lead(self):
+        self.trump = "Clubs"
+        self.cards = [self.two_hearts, self.seven_diamonds, self.ten_clubs, self.queen_spades, self.ace_diamonds]
+        self.my_hand = pydealer.Stack(cards=self.cards)
+        self.lead_suit = "Trump"
+        index = self.pl.find_lowest_card_index(self.my_hand, self.lead_suit, self.trump)
+        self.assertEqual(self.my_hand[index], self.ten_clubs)
+

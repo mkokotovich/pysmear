@@ -13,6 +13,7 @@ class Trick:
         # This is a list of cards played with the player who played them
         self.cards_played = []
         self.trump = trump 
+        # This will either be "Trump" or "Spades", "Diamonds", "Hearts", or "Clubs"
         self.lead_suit = ""
         self.current_winner_id = 0
         self.current_winning_card = None
@@ -41,7 +42,10 @@ class Trick:
     def add_card(self, player_id, card):
         if len(self.cards) == 0:
             # This is the first card
-            self.lead_suit = card.suit
+            if utils.is_trump(card, self.trump):
+                self.lead_suit = "Trump"
+            else:
+                self.lead_suit = card.suit
             self.current_winning_card = card
             self.current_winner_id = player_id
         elif self.is_new_card_higher(card):

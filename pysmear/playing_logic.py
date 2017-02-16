@@ -3,6 +3,7 @@
 import pydealer
 from pydealer.const import POKER_RANKS
 from smear_utils import SmearUtils as utils
+rank_values = POKER_RANKS["values"]
 
 class SmearPlayingLogic:
     def __init__(self, debug=False):
@@ -27,10 +28,10 @@ class JustGreedyEnough(SmearPlayingLogic):
                 # Card to beat isn't trump, but I have trump. Play my lowest trump
                 lowest_index = my_trump[0]
             else:
-                matching_idxs = my_hand.find(card_to_beat.suit, sort=True, ranks=POKER_RANKS)
+                matching_idxs = my_hand.find(card_to_beat.suit, sort=True, ranks=rank_values)
                 for idx in matching_idxs:
                     # Play the lowest card in the matching suit that will beat the card to beat
-                    if my_hand[idx].gt(card_to_beat, ranks=POKER_RANKS["values"]):
+                    if my_hand[idx].gt(card_to_beat, ranks=rank_values):
                         lowest_index = idx
         else:
             # Card to beat isn't trump and isn't the lead suit, this doesn't make sense
@@ -43,7 +44,7 @@ class JustGreedyEnough(SmearPlayingLogic):
         if len(my_trump) != 0:
             strongest_idx = my_trump[-1]
         else:
-            my_hand.sort(ranks=POKER_RANKS)
+            my_hand.sort(ranks=rank_values)
             strongest_idx = len(my_hand) - 1
         return strongest_idx
 
@@ -51,13 +52,13 @@ class JustGreedyEnough(SmearPlayingLogic):
         lowest_index = None
         lowest_trump_index = None
         # First try following suit.
-        my_hand.sort(ranks=POKER_RANKS)
+        my_hand.sort(ranks=rank_values)
         indices = []
-        if lead_suit == trump:
+        if lead_suit == "Trump":
             indices = utils.get_trump_indices(trump, my_hand)
             indices.reverse()
         else:
-            indices = my_hand.find(lead_suit, sort=True, ranks=POKER_RANKS)
+            indices = my_hand.find(lead_suit, sort=True, ranks=rank_values)
         if len(indices) == 0:
             indices = range(0, len(my_hand))
         for idx in indices:
