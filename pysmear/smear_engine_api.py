@@ -36,22 +36,6 @@ class SmearEngineApi:
         self.players_who_are_finished = []
 
 
-    def wait_for_valid_output(self, function_to_call, debug_message, args=tuple()):
-        sleep_interval = 1
-        time_waited = 0
-        ret = function_to_call(*args)
-        while (ret == None or ret == False) and time_waited < self.timeout_after:
-            #sleep and check again
-            if self.debug:
-                print "Sleeping: {}".format(debug_message)
-            time.sleep(sleep_interval)
-            time_waited += sleep_interval
-            ret = function_to_call(*args)
-        if time_waited >= self.timeout_after:
-            print "Calling {} ({}) took too long, giving up.".format(str(function_to_call), debug_message)
-        return ret
-
-
     def create_new_game(self, num_players, num_human_players, cards_to_deal=6, score_to_play_to=11):
         self.smear = SmearGameManager(cards_to_deal=cards_to_deal, score_to_play_to=score_to_play_to, debug=self.debug)
         self.desired_players = num_players
@@ -127,7 +111,7 @@ class SmearEngineApi:
         if player == None:
             print "Error: unable to find {}".format(player_name)
             return None
-        cards = self.wait_for_valid_output(player.get_hand, debug_message="Waiting for {}'s hand to be available".format(player_name))
+        cards = player.get_hand()
         return cards
 
 
@@ -143,7 +127,7 @@ class SmearEngineApi:
         if player == None:
             print "Error: unable to find {}".format(player_name)
             return None
-        bid_info = self.wait_for_valid_output(player.get_bid_info, debug_message="Waiting for {}'s bid_info to be available".format(player_name))
+        bid_info = player.get_bid_info()
         if bid_info == None:
             return None
 
@@ -173,11 +157,8 @@ class SmearEngineApi:
 
 
     def get_high_bid(self, hand_id):
-        high_bid = 0
         player_id = 0
-        username = ""
-        args = ( hand_id, )
-        bids_are_in = self.wait_for_valid_output(self.smear.all_bids_are_in, debug_message="Waiting for all bids to come in", args=args)
+        bids_are_in = self.smear.all_bids_are_in(hand_id)
         if not bids_are_in:
             return None
 
@@ -199,7 +180,7 @@ class SmearEngineApi:
 
 
     def get_trump(self):
-        trump = self.wait_for_valid_output(self.smear.get_trump, debug_message="Waiting for trump to be selected")
+        trump = self.smear.get_trump()
         return trump
 
 
@@ -225,7 +206,9 @@ class SmearEngineApi:
         if player == None:
             print "Error: unable to find {}".format(player_name)
             return None
-        playing_info = self.wait_for_valid_output(player.get_playing_info, debug_message="Waiting for {}'s playing_info to be available".format(player_name))
+        playing_info = player.get_playing_info()
+        if playing_info == None:
+            return playing_info
 
         # populate the usernames since we have that info here
         for i in range(0, len(playing_info["cards_played"])):
@@ -259,7 +242,9 @@ class SmearEngineApi:
         if player == None:
             print "Error: unable to find {}".format(player_name)
             return None
-        trick_results = self.wait_for_valid_output(player.get_results_of_trick, debug_message="Waiting for {}'s trick results to be available".format(player_name))
+        trick_results = player.get_results_of_trick()
+        if trick_results == None:
+            return None
 
         # populate the usernames since we have that info here
         player_id = trick_results["winner"]
@@ -277,7 +262,9 @@ class SmearEngineApi:
 
     def get_hand_results(self, hand_id):
         args = ( hand_id, )
-        hand_results = self.wait_for_valid_output(self.smear.get_hand_results, debug_message="Waiting for hand results to be available", args=args)
+        hand_results = self.smear.get_hand_results(hand_id)
+        if hand_results == None:
+            return hand_results
 
         # populate the usernames since we have that info here
         for key, value in hand_results.items():
