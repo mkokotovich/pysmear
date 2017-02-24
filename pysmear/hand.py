@@ -55,9 +55,13 @@ class SmearHandManager:
         self.current_low_id = 0
         self.current_low = None
         self.all_bids_are_in = False
+        self.remaining_bids = self.num_players
+        self.current_bidder = 0
         self.forced_two_set = False
         self.hand_results = {}
         self.debug = debug
+        self.remaining_players = self.num_players
+        self.current_player = 0
 
     def reset_players(self):
         for i in range(0, self.num_players):
@@ -76,10 +80,18 @@ class SmearHandManager:
         self.current_hand_id += 1
         self.current_hand = SmearHand(self.num_players, self.debug)
         self.scores = {}
+        self.hand_results = {}
         self.current_low_id = 0
         self.current_low = None
         self.all_bids_are_in = False
+        self.remaining_bids = self.num_players
+        self.current_bidder = 0
         self.forced_two_set = False
+
+    def prepare_for_next_trick(self):
+        self.current_hand.prepare_for_next_trick()
+        self.remaining_players = self.num_players
+        self.current_player = 0
 
     def is_hand_over(self):
         return not self.players[0].has_cards()
@@ -187,16 +199,18 @@ class SmearHandManager:
             next_id = 0
         return next_id
 
-
-
+    # Allows get_bids to be called multiple times per hand, state should be saved
     def get_bids(self, dealer_id):
         self.current_hand.bid = 0
         self.current_hand.bidder = 0
-        # Will actually bid last
-        current_bidder = dealer_id
-        for i in range(0, self.num_players):
-            current_bidder = self.next_player_id(current_bidder)
-            bid = self.players[current_bidder].declare_bid(self.current_hand, force_two=(current_bidder==dealer_id))
+        if self.remaining_bids == self.num_players:
+            # No bids yet, initialize current_bidder
+            # Dealer bids last
+            self.current_bidder = self.next_player_id(dealer_id)
+
+        # Gather all bids
+        for i in range(0, self.remaining_bids):
+            bid = self.players[self.current_bidder].declare_bid(self.current_hand, force_two=(self.current_bidder==dealer_id))
             if bid == 1:
                 print "Illegal bid of 1, resetting to 0"
                 bid = 0
@@ -204,11 +218,14 @@ class SmearHandManager:
                 print "Illegal bid of > 5 ({}) resetting to 5".format(bid)
                 bid = 5
             if self.debug:
-                print "{} bid {} and has {}".format(self.players[current_bidder].name, bid, " ".join(x.abbrev for x in self.players[current_bidder].hand))
+                print "{} bid {} and has {}".format(self.players[self.current_bidder].name, bid, " ".join(x.abbrev for x in self.players[self.current_bidder].hand))
             if bid > self.current_hand.bid:
                 self.current_hand.bid = bid
-                self.current_hand.bidder = current_bidder
-            self.current_hand.add_bid(current_bidder, bid)
+                self.current_hand.bidder = self.current_bidder
+            self.current_hand.add_bid(self.current_bidder, bid)
+            self.current_bidder = self.next_player_id(self.current_bidder)
+            self.remaining_bids -= 1
+
         self.all_bids_are_in = True
         if self.current_hand.bid == 0:
             # No one bid, the dealer takes a two set
@@ -230,20 +247,26 @@ class SmearHandManager:
             self.current_low = card
             self.current_low_id = player_id
 
+    # Allows play_trick to be called multiple times per trick, state should be saved
     def play_trick(self):
-        current_player = self.current_hand.first_player
+        if self.remaining_players == self.num_players:
+            # No one has played yet, initialize current_player
+            self.current_player = self.current_hand.first_player
+
         msg = ""
-        for i in range(0, self.num_players):
+        for i in range(0, self.remaining_players):
             if self.debug:
                 # Grab this before playing a card so that card is included
-                msg = str(self.players[current_player])
-            card = self.players[current_player].play_card(self.current_hand)
+                msg = str(self.players[self.current_player])
+            card = self.players[self.current_player].play_card(self.current_hand)
             # Because you don't need to take low home to get the point
-            self.update_low_if_needed(card, current_player)
+            self.update_low_if_needed(card, self.current_player)
             if self.debug:
                 print "{} plays {}".format(msg, str(card))
-            self.current_hand.add_card(current_player, card)
-            current_player = self.next_player_id(current_player)
+            self.current_hand.add_card(self.current_player, card)
+            self.current_player = self.next_player_id(self.current_player)
+            self.remaining_players -= 1
+
         # Give all cards to winner
         cards = self.current_hand.current_trick.get_all_cards_as_stack()
         winner_id = self.current_hand.current_trick.get_winner_id()
@@ -252,7 +275,7 @@ class SmearHandManager:
         for i in range(0, self.num_players):
             self.players[i].save_results_of_trick(winner_id, self.current_hand.get_cards_played())
         # Reset for the next trick
-        self.current_hand.prepare_for_next_trick()
+        self.prepare_for_next_trick()
         self.current_hand.first_player = winner_id
         if self.debug:
             print "{} won {}\n".format(self.players[winner_id].name, " ".join(x.abbrev for x in cards))

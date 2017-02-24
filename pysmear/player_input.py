@@ -2,16 +2,15 @@ import pydealer
 import math
 from pydealer.const import POKER_RANKS
 from smear_utils import SmearUtils as utils
+from smear_utils import SmearNeedInput
 from bidding_logic import *
 from playing_logic import *
 import json
 import time
 
 class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
-    def __init__(self, debug, stop_request=None):
+    def __init__(self, debug):
         self.debug = debug
-        self.stop_request = stop_request
-        self.sleep_interval = 1
         self.reset()
 
     def reset(self):
@@ -27,13 +26,6 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         self.playing_info = None
         self.player_card_index = None
         self.my_hand = None
-
-
-    def need_to_stop(self):
-        stop = False
-        if self.stop_request is not None:
-            stop = self.stop_request.isSet() 
-        return stop
 
     def convert_bid_info_to_dict(self, current_hand, force_two):
         bid_info = {}
@@ -57,13 +49,13 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         return True
 
     def get_bid_from_player(self):
-        while self.player_bid == None and not self.need_to_stop():
-            time.sleep(self.sleep_interval)
+        if self.player_bid == None:
+            raise SmearNeedInput("Bid not available")
         return self.player_bid
 
     def get_trump_from_player(self):
-        while self.player_bid_trump == None and not self.need_to_stop():
-            time.sleep(self.sleep_interval)
+        if self.player_bid_trump == None:
+            raise SmearNeedInput("Selected trump not available")
         return self.player_bid_trump
 
     def calculate_bid(self, current_hand, my_hand, force_two=False):
@@ -110,8 +102,8 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         return True
 
     def get_card_index_to_play_from_player(self):
-        while self.player_card_index == None and not self.need_to_stop():
-            time.sleep(self.sleep_interval)
+        if self.player_card_index == None:
+            raise SmearNeedInput("Card index to play not available")
         return self.player_card_index
 
     def choose_card(self, current_hand, my_hand):

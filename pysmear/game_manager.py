@@ -4,6 +4,7 @@ import pydealer
 from pydealer.const import POKER_RANKS
 from hand import *
 from player import Player
+from smear_utils import SmearNeedInput
 
 
 class SmearGameManager:
@@ -20,6 +21,9 @@ class SmearGameManager:
         self.dealer = 0
         self.all_hand_results = {}
         self.all_high_bid_infos = {}
+        self.bidding_is_finished = False
+        self.trump_revealed = False
+        self.forced_two_set = False
 
     def initialize_default_players(self):
         for i in range(0, self.num_players):
@@ -44,6 +48,7 @@ class SmearGameManager:
 
     def start_game(self):
         self.hand_manager = SmearHandManager(self.players, self.cards_to_deal, self.debug)
+        self.start_next_hand()
 
     def is_game_over(self):
         return self.game_over
@@ -74,11 +79,10 @@ class SmearGameManager:
         results = self.all_hand_results[hand_id]
         return results
 
-    def next_dealer(self):
+    def set_next_dealer(self):
         self.dealer = self.dealer + 1
         if self.dealer == self.num_players:
             self.dealer = 0
-        return self.dealer
 
     def get_winners(self):
         winners = []
@@ -144,26 +148,35 @@ class SmearGameManager:
     def get_high_bid_info(self, hand_id):
         return self.all_high_bid_infos[hand_id]
 
-    def save_high_bid_info(self, forced_two_set):
+    def save_high_bid_info(self):
         bid_info = {}
         bid_info["current_bid"] = self.hand_manager.current_hand.bid
         bid_info["bidder"] = self.hand_manager.current_hand.bidder
         bid_info["all_bids"] = self.hand_manager.current_hand.get_all_bids()
         self.all_high_bid_infos[self.hand_manager.current_hand_id] = bid_info
 
-    def play_hand(self):
+
+    # Needs to be called only once per hand
+    def start_next_hand(self):
         self.hand_manager.reset_for_next_hand()
-        forced_two_set = self.hand_manager.get_bids(self.next_dealer())
-        self.save_high_bid_info(forced_two_set)
-        if forced_two_set:
+        self.set_next_dealer()
+        self.forced_two_set = False
+        self.bidding_is_finished = False
+        self.trump_revealed = False
+
+
+    # Can be called repeatedly
+    def continue_bidding(self):
+        self.forced_two_set = self.hand_manager.get_bids(self.dealer)
+        self.save_high_bid_info()
+        if self.forced_two_set:
             # Forced set, dealer get_scores() will return appropriately
             if self.debug:
                 print "Dealer ({}) was forced to take a two set".format(self.players[self.dealer].name)
-        else:
-            # Play hand
-            self.hand_manager.reveal_trump()
-            while not self.hand_manager.is_hand_over():
-                self.hand_manager.play_trick()
+
+    
+    # Needs to be called only once per hand
+    def finish_hand(self):
         # Update scores
         self.update_scores(self.hand_manager.get_scores(self.dealer), self.hand_manager.current_hand.bidder)
         # Save hand results
@@ -172,3 +185,34 @@ class SmearGameManager:
         self.all_hand_results[self.hand_manager.current_hand_id]["is_game_over"] = self.is_game_over()
         # Add current scores at the end of the hand
         self.all_hand_results[self.hand_manager.current_hand_id]["player_infos"] = self.generate_player_infos()
+
+
+    # Can be called repeatedly
+    # Returns True if it needs to be called again
+    # Returns False if the game is finished
+    def play_game_async(self):
+        try:
+            if not self.bidding_is_finished:
+                self.continue_bidding()
+                self.bidding_is_finished = True
+            if not self.forced_two_set:
+                # Only play the hand if the dealer wasn't forced to take a two set
+                if not self.trump_revealed:
+                    self.hand_manager.reveal_trump()
+                    self.trump_revealed = True
+                while not self.hand_manager.is_hand_over():
+                    # Play trick
+                    self.hand_manager.play_trick()
+        except SmearNeedInput as e:
+            print "Stopping to allow input: {}".format(e.strerror)
+            return True
+
+        # Hand is finished, calculate scores and log the results
+        self.finish_hand()
+
+        # Start the next hand
+        if not self.is_game_over():
+            self.start_next_hand()
+            return True
+        else:
+            return False

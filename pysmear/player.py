@@ -123,9 +123,9 @@ class Player(object):
 
 
 class InteractivePlayer(Player):
-    def __init__(self, player_id, initial_cards=None, debug=False, stop_request=None):
+    def __init__(self, player_id, initial_cards=None, debug=False):
         super(InteractivePlayer, self).__init__(player_id, initial_cards, debug)
-        self.playing_logic = PlayerInput(debug=debug, stop_request=stop_request)
+        self.playing_logic = PlayerInput(debug=debug)
         self.bidding_logic = self.playing_logic
 
     def reset(self):

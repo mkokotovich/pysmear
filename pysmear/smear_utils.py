@@ -8,7 +8,15 @@ jack_spades = pydealer.Card(value="Jack", suit="Spades")
 jack_diamonds = pydealer.Card(value="Jack", suit="Diamonds")
 jack_clubs = pydealer.Card(value="Jack", suit="Clubs")
 
+class SmearNeedInput(Exception):
+    """Raised when the engine needs user input"""
+    def __init__(self, arg):
+        self.strerror = arg
+        self.args = {arg}
+
 class SmearUtils():
+
+
     # Returns the value of card_lhs < card_rhs, following the rules of trump
     @staticmethod
     def is_less_than(card_lhs, card_rhs, trump):

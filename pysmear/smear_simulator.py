@@ -1,11 +1,12 @@
 # Simulator for the card game smear
 
 import sys
+sys.path.insert(0, "..")
+sys.path.insert(0, "../../pydealer")
+
 from game_manager import SmearGameManager
 from player import *
 #from stats import SmearStats
-
-
 class SmearSimulator:
     def __init__(self, debug=False):
         self.debug = debug
@@ -24,7 +25,7 @@ class SmearSimulator:
         #for player in self.smear.get_players():
             #self.smear_stats.add_game_status(self.smear.number_of_hands, player.name, player.get_card_count(), player.number_of_cards())
         while not self.smear.is_game_over():
-            self.smear.play_hand()
+            self.smear.play_game_async()
             #for player in self.smear.get_players():
                 #self.smear_stats.add_game_status(self.smear.number_of_hands, player.name, player.get_card_count(), player.number_of_cards())
             if self.debug:
@@ -43,3 +44,4 @@ class SmearSimulator:
 
     #def stats(self):
         #return self.smear_stats.summarize()
+

@@ -7,19 +7,6 @@ from game_manager import SmearGameManager
 from player import *
 #from stats import SmearStats
 
-def play_game_as_thread(smear, thread_stop_request):
-    while not smear.is_game_over() and not thread_stop_request.isSet():
-        print "Playing another hand"
-        try:
-            smear.play_hand()
-        except:
-            e = sys.exc_info()[0]
-            print "Game encountered a fatal error: {}".format(str(e))
-    if thread_stop_request.isSet():
-        print "Thread was quit forcefully, game is not finished"
-    else:
-        print "Game is finished, exiting thread"
-
 
 class SmearEngineApi:
     def __init__(self, debug=False):
@@ -31,7 +18,6 @@ class SmearEngineApi:
         self.cleanup_thread = None
         self.timeout_after = 600
         self.game_timeout = 36000
-        self.thread_stop_request = Event()
         self.number_of_interactive_players = 0
         self.players_who_are_finished = []
 
@@ -44,7 +30,7 @@ class SmearEngineApi:
 
     def add_player(self, player_id, interactive=False):
         if interactive:
-            self.smear.add_player(InteractivePlayer(player_id, debug=self.debug, stop_request=self.thread_stop_request))
+            self.smear.add_player(InteractivePlayer(player_id, debug=self.debug))
             self.number_of_interactive_players += 1
         else:
             self.smear.add_player(Player(player_id, debug=self.debug))
@@ -81,10 +67,9 @@ class SmearEngineApi:
         self.smear.reset_game()
         self.smear.start_game()
 
-        # Start a thread to play the game in the background
-        self.thread = Thread(target=play_game_as_thread, args = ( self.smear, self.thread_stop_request,  ))
-        self.thread.daemon = True
-        self.thread.start()
+    
+    def continue_game(self):
+        self.smear.play_game_async()
 
 
     def player_is_finished(self, player_name):
@@ -99,8 +84,6 @@ class SmearEngineApi:
     def finish_game(self):
         if self.debug:
             print "Finishing game"
-        self.thread_stop_request.set()
-        self.thread.join()
 
     
     def get_hand_for_player(self, player_name):
