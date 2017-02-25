@@ -74,7 +74,7 @@ class SmearUtils():
         for i in range(0, len(indices)):
             # Loop through indices, comparing card in stack at that index to
             # card in stack at card_index
-            if stack[indices[i]].lt(stack[card_index], ranks=POKER_RANKS["values"]):
+            if stack[indices[i]].lt(stack[card_index], ranks=POKER_RANKS):
                 # New card is larger, keep going
                 continue
             else:

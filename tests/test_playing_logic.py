@@ -16,7 +16,7 @@ class TestPlayingLogic(unittest.TestCase):
         self.jack_clubs = pydealer.Card("Jack", "Clubs")
         self.queen_diamonds = pydealer.Card(value="Queen", suit="Diamonds")
 
-        self.two_hearts = pydealer.Card("two", "Hearts")
+        self.two_hearts = pydealer.Card("2", "Hearts")
         self.seven_diamonds = pydealer.Card("7", "Diamonds")
         self.ten_clubs = pydealer.Card("10", "Clubs")
         self.queen_spades = pydealer.Card("Queen", "Spades")
@@ -50,4 +50,12 @@ class TestPlayingLogic(unittest.TestCase):
         self.lead_suit = "Trump"
         index = self.pl.find_lowest_card_index(self.my_hand, self.lead_suit, self.trump)
         self.assertEqual(self.my_hand[index], self.ten_clubs)
+
+    def test_find_lowest_card_index_returns_lowest_when_unable_to_follow_suit(self):
+        self.trump = "Spades"
+        self.cards = [self.six_hearts, self.two_hearts, self.seven_clubs, self.ten_clubs]
+        self.my_hand = pydealer.Stack(cards=self.cards)
+        self.lead_suit = "Diamonds"
+        index = self.pl.find_lowest_card_index(self.my_hand, self.lead_suit, self.trump)
+        self.assertEqual(self.my_hand[index], self.two_hearts)
 

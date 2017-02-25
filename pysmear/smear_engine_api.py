@@ -10,14 +10,10 @@ from player import *
 
 class SmearEngineApi:
     def __init__(self, debug=False):
+        self.smear = None
         self.debug = debug
         self.desired_players = 0
         self.desired_human_players = 0
-        self.smear = None
-        self.thread = None
-        self.cleanup_thread = None
-        self.timeout_after = 600
-        self.game_timeout = 36000
         self.number_of_interactive_players = 0
         self.players_who_are_finished = []
         self.game_started = False

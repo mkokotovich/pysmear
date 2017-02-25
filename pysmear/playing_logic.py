@@ -2,8 +2,9 @@
 
 import pydealer
 from pydealer.const import POKER_RANKS
+from pydealer.tools import sort_cards
 from smear_utils import SmearUtils as utils
-rank_values = POKER_RANKS["values"]
+rank_values = POKER_RANKS
 
 class SmearPlayingLogic:
     def __init__(self, debug=False):
