@@ -188,8 +188,8 @@ class SmearGameManager:
 
 
     # Can be called repeatedly
-    # Returns True if it needs to be called again
-    # Returns False if the game is finished
+    # Returns False if it needs to be called again
+    # Returns True if the game is finished
     def play_game_async(self):
         try:
             if not self.bidding_is_finished:
@@ -205,7 +205,7 @@ class SmearGameManager:
                     self.hand_manager.play_trick()
         except SmearNeedInput as e:
             print "Stopping to allow input: {}".format(e.strerror)
-            return True
+            return False
 
         # Hand is finished, calculate scores and log the results
         self.finish_hand()
@@ -213,6 +213,6 @@ class SmearGameManager:
         # Start the next hand
         if not self.is_game_over():
             self.start_next_hand()
-            return True
-        else:
             return False
+        else:
+            return True

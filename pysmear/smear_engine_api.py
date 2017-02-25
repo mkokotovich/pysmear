@@ -21,6 +21,7 @@ class SmearEngineApi:
         self.number_of_interactive_players = 0
         self.players_who_are_finished = []
         self.game_started = False
+        self.game_finished = False
 
 
     def create_new_game(self, num_players, num_human_players, cards_to_deal=6, score_to_play_to=11):
@@ -71,8 +72,8 @@ class SmearEngineApi:
 
     
     def continue_game(self):
-        if self.game_started:
-            self.smear.play_game_async()
+        if self.game_started and not self.game_finished:
+            self.game_finished = self.smear.play_game_async()
 
 
     def player_is_finished(self, player_name):
