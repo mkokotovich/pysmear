@@ -59,7 +59,8 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
         return self.player_bid_trump
 
     def calculate_bid(self, current_hand, my_hand, force_two=False):
-        self.save_bid_info(current_hand, force_two)
+        if self.player_bid == None:
+            self.save_bid_info(current_hand, force_two)
 
     def declare_bid(self):
         bid = self.get_bid_from_player()

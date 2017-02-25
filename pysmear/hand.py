@@ -201,10 +201,10 @@ class SmearHandManager:
 
     # Allows get_bids to be called multiple times per hand, state should be saved
     def get_bids(self, dealer_id):
-        self.current_hand.bid = 0
-        self.current_hand.bidder = 0
         if self.remaining_bids == self.num_players:
-            # No bids yet, initialize current_bidder
+            # No bids yet, initialize info
+            self.current_hand.bid = 0
+            self.current_hand.bidder = 0
             # Dealer bids last
             self.current_bidder = self.next_player_id(dealer_id)
 
