@@ -7,6 +7,7 @@ from test_bidding_logic import *
 from test_playing_logic import *
 from test_smear_engine_api import *
 from test_smear_utils import *
+from test_card_counting import *
 
 if __name__ == '__main__':
    unittest.main()
