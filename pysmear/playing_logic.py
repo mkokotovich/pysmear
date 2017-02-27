@@ -4,13 +4,15 @@ import pydealer
 from pydealer.const import POKER_RANKS
 from pydealer.tools import sort_cards
 from smear_utils import SmearUtils as utils
+from card_counting import CardCounting
+
 rank_values = POKER_RANKS
 
 class SmearPlayingLogic:
     def __init__(self, debug=False):
         self.debug = debug
 
-    def choose_card(self, current_hand, my_hand):
+    def choose_card(self, current_hand, card_counting_info, my_hand):
         pass
 
 # TODO: write more and better versions of these
@@ -72,7 +74,7 @@ class JustGreedyEnough(SmearPlayingLogic):
             lowest_index = lowest_trump_index
         return lowest_index
 
-    def choose_card(self, current_hand, my_hand):
+    def choose_card(self, current_hand, card_counting_info, my_hand):
         idx = 0
         if len(current_hand.current_trick.cards) == 0:
             # I'm the first player. Choose my strongest card

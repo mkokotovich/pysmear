@@ -5,6 +5,8 @@ from smear_utils import SmearUtils as utils
 from smear_utils import SmearNeedInput
 from bidding_logic import *
 from playing_logic import *
+from card_counting import CardCounting
+
 import json
 import time
 
@@ -107,7 +109,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
             raise SmearNeedInput("Card index to play not available")
         return self.player_card_index
 
-    def choose_card(self, current_hand, my_hand):
+    def choose_card(self, current_hand, card_counting_info, my_hand):
         self.save_playing_info(current_hand, my_hand)
         card_index = self.get_card_index_to_play_from_player()
         self.reset_playing_info()

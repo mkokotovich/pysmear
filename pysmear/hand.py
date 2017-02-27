@@ -4,6 +4,7 @@ import pydealer
 from pydealer.const import POKER_RANKS
 from smear_utils import SmearUtils as utils
 from trick import Trick
+from card_counting import CardCounting
 
 
 # Everything regarding the state of a hand, so a player can look at this and chose a card to play
@@ -62,6 +63,7 @@ class SmearHandManager:
         self.debug = debug
         self.remaining_players = self.num_players
         self.current_player = 0
+        self.card_counting_info = CardCounting(self.num_players, self.debug)
 
     def reset_players(self):
         for i in range(0, self.num_players):
@@ -258,12 +260,13 @@ class SmearHandManager:
             if self.debug:
                 # Grab this before playing a card so that card is included
                 msg = str(self.players[self.current_player])
-            card = self.players[self.current_player].play_card(self.current_hand)
+            card = self.players[self.current_player].play_card(self.current_hand, self.card_counting_info)
             # Because you don't need to take low home to get the point
             self.update_low_if_needed(card, self.current_player)
             if self.debug:
                 print "{} plays {}".format(msg, str(card))
             self.current_hand.add_card(self.current_player, card)
+            self.card_counting_info.update(self.current_player, card, self.current_hand)
             self.current_player = self.next_player_id(self.current_player)
             self.remaining_players -= 1
 

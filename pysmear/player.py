@@ -5,6 +5,7 @@ from pydealer.const import POKER_RANKS
 from bidding_logic import *
 from playing_logic import *
 from player_input import *
+from card_counting import CardCounting
 
 
 
@@ -45,10 +46,10 @@ class Player(object):
         return msg
 
     # Returns a single card
-    def play_card(self, current_hand):
+    def play_card(self, current_hand, card_counting_info):
         if self.hand.size == 0:
             return None
-        card_index = self.playing_logic.choose_card(current_hand, self.hand)
+        card_index = self.playing_logic.choose_card(current_hand, card_counting_info, self.hand)
         card_to_play = self.hand[card_index]
         del self.hand[card_index]
         return card_to_play
