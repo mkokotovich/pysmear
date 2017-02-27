@@ -149,11 +149,32 @@ class CautiousTaker(SmearPlayingLogic):
             lowest_index = lowest_trump_index
         return lowest_index
 
+
+    def get_A_K_Q_of_trump(self, my_hand, trump):
+        ret = None
+        indices = utils.get_trump_indices(trump, my_hand)
+        if len(indices) is not 0 and my_hand[indices[-1]].value in "Ace King Queen":
+            ret = indices[-1]
+        return ret
+
+
+    def get_lowest_trump(self, my_hand, trump):
+        ret = None
+        indices = utils.get_trump_indices(trump, my_hand)
+        if len(indices) is not 0:
+            ret = indices[-1]
+        return ret
+
+
     def choose_card(self, current_hand, card_counting_info, my_hand):
         idx = 0
         if len(current_hand.current_trick.cards) == 0:
             # First player, leading the trick...
             # Play A, K, Q of trump
+            idx = self.get_A_K_Q_of_trump(my_hand, current_hand.trump)
+            if idx is None and len(my_hand) == 6:
+                # (If bidder and this is first trick, play lowest trump)
+                idx = self.get_lowest_trump(my_hand, current_hand.trump)
             # Play A, K, Q, J of other suits
             # Play low of other suit
             # Play lowest trump
