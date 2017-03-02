@@ -96,7 +96,10 @@ class SmearHandManager:
         self.current_player = 0
 
     def is_hand_over(self):
-        return not self.players[0].has_cards()
+        for player in self.players.values():
+            if player.has_cards():
+                return False
+        return True
 
     def get_scores(self, dealer_id):
         if self.forced_two_set:
