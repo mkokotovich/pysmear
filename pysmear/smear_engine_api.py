@@ -61,7 +61,8 @@ class SmearEngineApi:
         if not self.all_players_added():
             print "Error: Can't start game before all players are added"
             return
-        print "Number of players: " + str(len(self.smear.get_players()))
+        if self.debug:
+            print "Number of players: " + str(len(self.smear.get_players()))
         self.smear.reset_game()
         self.smear.start_game()
         self.game_started = True

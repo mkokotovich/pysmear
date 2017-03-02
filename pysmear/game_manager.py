@@ -204,7 +204,8 @@ class SmearGameManager:
                     # Play trick
                     self.hand_manager.play_trick()
         except SmearNeedInput as e:
-            print "Stopping to allow input: {}".format(e.strerror)
+            if self.debug:
+                print "Stopping to allow input: {}".format(e.strerror)
             return False
 
         # Hand is finished, calculate scores and log the results
