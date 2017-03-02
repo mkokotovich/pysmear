@@ -181,6 +181,24 @@ class SmearEngineApi:
         return True
 
 
+    def get_cards_played_so_far(self):
+        cards_played = None
+        try:
+            cards_played = self.smear.hand_manager.current_hand.current_trick.get_cards_played()
+        except:
+            pass
+
+        if cards_played is not None:
+            # populate the usernames since we have that info here
+            for i in range(0, len(cards_played)):
+                player_id = cards_played[i]["username"]
+                if type(0) == type(player_id):
+                    player_name = self.smear.get_players()[player_id].name
+                    cards_played[i]["username"] = player_name
+
+        return cards_played
+
+
     def get_playing_info_for_player(self, player_name):
         player = None
         for player_itr in self.smear.get_players():
