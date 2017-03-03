@@ -10,7 +10,7 @@ from card_counting import CardCounting
 
 
 class Player(object):
-    def __init__(self, player_id, initial_cards=None, debug=False):
+    def __init__(self, name, initial_cards=None, debug=False, playing_logic=None):
         self.hand = pydealer.Stack()
         self.pile = pydealer.Stack()
         self.bid = 0
@@ -20,9 +20,12 @@ class Player(object):
         self.trick_results = None
         if initial_cards:
             self.hand += initial_cards
-        self.name = player_id
-        self.playing_logic = JustGreedyEnough()
+        self.name = name
+        if playing_logic is None:
+            playing_logic = JustGreedyEnough()
+        self.playing_logic = playing_logic
         self.bidding_logic = BasicBidding(debug=debug)
+        self.player_id = None
 
     def reset(self):
         self.hand = pydealer.Stack()
@@ -30,6 +33,10 @@ class Player(object):
         self.bid = 0
         self.bid_trump = None
         self.is_bidder = False
+
+    def set_player_id(self, player_id):
+        self.player_id = player_id
+        self.playing_logic.player_id = player_id
 
     def set_initial_cards(self, initial_cards):
         self.hand = pydealer.Stack()
@@ -69,19 +76,7 @@ class Player(object):
         return self.bid_trump
 
     def calculate_game_score(self):
-        game_score = 0
-        for card in self.pile:
-            if card.value == "10":
-                game_score += 10
-            if card.value == "Ace":
-                game_score += 4
-            elif card.value == "King":
-                game_score += 3
-            elif card.value == "Queen":
-                game_score += 2
-            elif card.value == "Jack":
-                game_score += 1
-        return game_score
+        return utils.calculate_game_score(self.pile)
 
     def get_high_trump_card(self, trump):
         high_trump = None

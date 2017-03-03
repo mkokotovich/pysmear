@@ -68,6 +68,28 @@ class SmearUtils():
 
 
     @staticmethod
+    def is_new_card_higher(current_winning_card, new_card, trump, debug=False):
+        is_higher = False
+        if SmearUtils.is_trump(current_winning_card, trump) or SmearUtils.is_trump(new_card, trump):
+            # At least one of the cards is trump, compare to new card
+            is_higher = not SmearUtils.is_less_than(new_card, current_winning_card, trump)
+            if debug:
+                print "At least one card is trump, {} is higher than {}".format(str(new_card) if is_higher else str(current_winning_card), str(current_winning_card) if is_higher else str(new_card))
+        elif new_card.suit == current_winning_card.suit:
+            # Both are not trump, but are the same suit
+            is_higher = POKER_RANKS["values"][new_card.value] > POKER_RANKS["values"][current_winning_card.value]
+            if debug:
+                print "Suit is same ({}), {} is higher than {}".format(new_card.suit, str(new_card) if is_higher else str(current_winning_card), str(current_winning_card) if is_higher else str(new_card))
+        else:
+            # new_card is a different suit, and not trump, so is not higher
+            is_higher = False
+            if debug:
+                print "Suit is different, {} was unable to follow suit".format(str(new_card))
+
+        return is_higher
+
+
+    @staticmethod
     def insert_card_into_sorted_index_list(indices, stack, card_index):
         # Assumes sorted from smallest to largest
         inserted = False
@@ -87,6 +109,31 @@ class SmearUtils():
             indices.append(card_index)
 
 
+    @staticmethod
+    def merge_two_sorted_index_lists(left_indices, right_indices, stack):
+        return sorted(left_indices + right_indices, key=lambda x: POKER_RANKS["values"][stack[x].value])
+
+
+    # Sorted from smallest to largest
+    @staticmethod
+    def get_legal_play_indices(lead_suit, trump, stack):
+        # Find trump indices
+        trump_indices = SmearUtils.get_trump_indices(trump, stack)
+        if lead_suit == "Trump":
+            if len(trump_indices) == 0:
+                # No trump and trump was lead, can play anything
+                return range(0, len(stack))
+            return trump_indices
+
+        # Find indices from the lead suit
+        lead_suit_indices = stack.find(lead_suit, sort=True, ranks=POKER_RANKS)
+        if len(lead_suit_indices) == 0:
+            # No lead suit, can play anything
+            return range(0, len(stack))
+
+        return SmearUtils.merge_two_sorted_index_lists(lead_suit_indices, trump_indices, stack)
+
+
     # Sorted from smallest to largest
     @staticmethod
     def get_trump_indices(trump, stack):
@@ -103,3 +150,20 @@ class SmearUtils():
         if jick in stack.cards:
             SmearUtils.insert_card_into_sorted_index_list(trump_indices, stack, stack.find(jick.abbrev)[0])
         return trump_indices
+
+
+    @staticmethod
+    def calculate_game_score(cards):
+        game_score = 0
+        for card in cards:
+            if card.value == "10":
+                game_score += 10
+            if card.value == "Ace":
+                game_score += 4
+            elif card.value == "King":
+                game_score += 3
+            elif card.value == "Queen":
+                game_score += 2
+            elif card.value == "Jack":
+                game_score += 1
+        return game_score

@@ -269,7 +269,7 @@ class SmearHandManager:
             if self.debug:
                 print "{} plays {}".format(msg, str(card))
             self.current_hand.add_card(self.current_player, card)
-            self.card_counting_info.card_was_played(self.current_player, card, self.current_hand)
+            self.card_counting_info.card_was_played(self.current_player, card, self.current_hand.current_trick)
             self.current_player = self.next_player_id(self.current_player)
             self.remaining_players -= 1
 

@@ -33,9 +33,9 @@ class CardCounting:
                 self.player_out_of_cards[i][suit] = False
 
 
-    def card_was_played(self, player_id, card, current_hand):
+    def card_was_played(self, player_id, card, current_trick):
         # Update the list of cards played
-        if utils.is_trump(card, current_hand.trump):
+        if utils.is_trump(card, current_trick.trump):
             self.cards_played["Trump"].append(card)
             if len(self.cards_played["Trump"]) == 14:
                 # If all trump has been played, everyone is out
@@ -43,17 +43,17 @@ class CardCounting:
                     self.player_out_of_cards[i]["Trump"] == True
         else:
             self.cards_played[card.suit].append(card)
-            if len(self.cards_played[card.suit]) == 13 if not self.jick_suit_for(current_hand.trump) == card.suit else 12:
+            if len(self.cards_played[card.suit]) == 13 if not self.jick_suit_for(current_trick.trump) == card.suit else 12:
                 # If all cards of this suit have been played (only 12 cards for the jick suit), everyone is out
                 for i in range(0, self.num_players):
                     self.player_out_of_cards[i][card.suit] == True
 
         # Update if the player is out of the suit
-        if current_hand.current_trick.lead_suit == "Trump":
-            if not utils.is_trump(card, current_hand.trump):
+        if current_trick.lead_suit == "Trump":
+            if not utils.is_trump(card, current_trick.trump):
                 self.player_out_of_cards[player_id]["Trump"] = True
         else:
-            if not utils.is_trump(card, current_hand.trump) and card.suit is not current_hand.current_trick.lead_suit:
+            if not utils.is_trump(card, current_trick.trump) and card.suit is not current_trick.lead_suit:
                 # If player is trumping in, can't tell if he/she is out of lead_suit
                 # So if it isn't trump, and isn't the lead_suit, must be out of lead_suit
                 self.player_out_of_cards[player_id][card.suit] = True
@@ -96,14 +96,14 @@ class CardCounting:
 
 
     # Returns true if it is known that no one else in the trick can take this card
-    def safe_to_play(self, player_id, card, current_hand):
+    def safe_to_play(self, player_id, card, current_trick):
         # How many players still need to play in the trick, -1 to account for self
-        remaining_num_players = self.num_players - len(current_hand.current_trick.cards) - 1
+        remaining_num_players = self.num_players - len(current_trick.cards) - 1
         highest_of_suit = False
 
         # First check to see if it is the highest remaining card
-        if utils.is_trump(card, current_hand.trump):
-            if card == self.highest_card_still_out(current_hand.trump, True):
+        if utils.is_trump(card, current_trick.trump):
+            if card == self.highest_card_still_out(current_trick.trump, True):
                 # If this is highest remaining Trump, it is definitely safe
                 return True
         else:
@@ -112,8 +112,8 @@ class CardCounting:
 
         # For each remaining player:
         for i in range(0, remaining_num_players):
-            next_player = player_id + 1 % self.num_players
-            if utils.is_trump(card, current_hand.trump):
+            next_player = (player_id + 1) % self.num_players
+            if utils.is_trump(card, current_trick.trump):
                 # If we don't have the highest remaining trump, then we need everyone after
                 # us to be out of trump
                 if self.player_out_of_cards[next_player]["Trump"]:
@@ -131,4 +131,14 @@ class CardCounting:
             # If we made it through the if/else's, that means this player could have cards that can take ours
             return False
 
-        return True
+        # If we have made it this far, and it beats the current_winning_card, it is safe
+        return utils.is_new_card_higher(current_trick.current_winning_card, card, current_trick.trump)
+
+
+    def jack_or_jick_still_out(self):
+        jboys = 0
+        for card in self.cards_played["Trump"]:
+            if card.value == "Jack":
+                jboys += 1
+        return jboys < 2
+

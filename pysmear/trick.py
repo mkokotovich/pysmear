@@ -20,24 +20,7 @@ class Trick:
         self.debug = debug
 
     def is_new_card_higher(self, card):
-        is_higher = False
-        if utils.is_trump(self.current_winning_card, self.trump) or utils.is_trump(card, self.trump):
-            # At least one of the cards is trump, compare to new card
-            is_higher = not utils.is_less_than(card, self.current_winning_card, self.trump)
-            if self.debug:
-                print "At least one card is trump, {} is higher than {}".format(str(card) if is_higher else str(self.current_winning_card), str(self.current_winning_card) if is_higher else str(card))
-        elif card.suit == self.current_winning_card.suit:
-            # Both are not trump, but are the same suit
-            is_higher = POKER_RANKS["values"][card.value] > POKER_RANKS["values"][self.current_winning_card.value]
-            if self.debug:
-                print "Suit is same ({}), {} is higher than {}".format(card.suit, str(card) if is_higher else str(self.current_winning_card), str(self.current_winning_card) if is_higher else str(card))
-        else:
-            # card is a different suit, and not trump, so is not higher
-            is_higher = False
-            if self.debug:
-                print "Suit is different, {} was unable to follow suit".format(str(card))
-
-        return is_higher
+        return utils.is_new_card_higher(self.current_winning_card, card, self.trump, debug=self.debug)
 
     def add_card(self, player_id, card):
         if len(self.cards) == 0:

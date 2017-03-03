@@ -37,6 +37,7 @@ class SmearGameManager:
         if self.debug:
             print("Adding {} with index {}".format(player.name, self.num_players))
         self.players[self.num_players] = player
+        player.set_player_id(self.num_players)
         self.num_players += 1
 
     def reset_game(self):
