@@ -317,6 +317,22 @@ class CautiousTaker(SmearPlayingLogic):
         return idx
 
 
+    def get_least_valuable_trump(self, my_hand, trump):
+        idx = None
+        indices = utils.get_trump_indices(trump, my_hand)
+        for index in indices:
+            if my_hand[index].value in "10 Jack":
+                # Try to skip 10s and Jacks if we can
+                continue
+            idx = index
+            break
+        if idx == None and len(indices) > 0:
+            idx = indices[0]
+        if idx is not None and self.debug:
+            print "get_least_valuable_trump chooses {}".format(my_hand[idx])
+        return idx
+
+
     def get_the_least_worst_card_to_lose(self, my_hand, current_trick):
         idx = None
         indices = utils.get_legal_play_indices(current_trick.lead_suit, current_trick.trump, my_hand)
@@ -377,7 +393,7 @@ class CautiousTaker(SmearPlayingLogic):
                 idx = self.get_a_loser(my_hand, current_hand.current_trick)
             # Play lowest trump
             if idx is None:
-                idx = self.get_lowest_trump(my_hand, current_hand.current_trick.trump)
+                idx = self.get_least_valuable_trump(my_hand, current_hand.current_trick.trump)
             # At this point we only have 10s and face cards left. Play the lowest of those
             if idx == None:
                 idx = self.get_the_least_worst_card_to_lose(my_hand, current_hand.current_trick)

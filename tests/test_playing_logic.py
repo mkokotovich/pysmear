@@ -345,3 +345,4 @@ class TestCautiousTakerPlayingLogic(unittest.TestCase):
 
         index = self.pl.take_jack_or_jick_if_high_cards_are_out(self.my_hand, self.current_trick, self.card_counting_info)
         self.assertEqual(index, None)
+

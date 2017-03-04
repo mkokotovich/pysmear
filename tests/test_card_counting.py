@@ -110,3 +110,4 @@ class TestHighestCardStillOut(unittest.TestCase):
 
         card = self.cc.highest_card_still_out("Spades", True)
         self.assertEqual(card, self.ten_spades)
+
