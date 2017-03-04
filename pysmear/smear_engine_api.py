@@ -5,6 +5,7 @@ from threading import Thread, Event
 import Queue
 from game_manager import SmearGameManager
 from player import *
+from playing_logic import *
 #from stats import SmearStats
 
 
@@ -31,7 +32,7 @@ class SmearEngineApi:
             self.smear.add_player(InteractivePlayer(player_id, debug=self.debug))
             self.number_of_interactive_players += 1
         else:
-            self.smear.add_player(Player(player_id, debug=self.debug))
+            self.smear.add_player(Player(player_id, debug=self.debug, playing_logic=CautiousTaker(debug=self.debug)))
 
 
     def all_players_added(self):
