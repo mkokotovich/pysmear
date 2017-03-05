@@ -231,8 +231,8 @@ class SmearEngineApi:
         if player == None:
             print "Error: unable to find {}".format(player_name)
             return False
-        if not player.save_card_to_play(card_to_play):
-            print "Error: unable to play {}, likely couldn't find the card in hand".format(str(card_to_play))
+        if not player.save_card_to_play(card_to_play, self.smear.get_trump()):
+            print "Error: unable to play {}".format(str(card_to_play))
             return False
         return True
 

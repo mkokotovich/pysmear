@@ -89,7 +89,7 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
     def get_playing_info(self):
         return self.playing_info
 
-    def save_card_to_play(self, card_to_play):
+    def save_card_to_play(self, card_to_play, trump):
         # card is in dict format, need to find index
         index = None
         for i in range(0, len(self.my_hand)):
@@ -101,6 +101,12 @@ class PlayerInput(SmearBiddingLogic, SmearPlayingLogic):
             # Unable to find card
             print "Error, unable to find {} in my hand".format(str(card_to_play))
             return False
+        legal_plays = utils.get_legal_play_indices(self.playing_info["lead_suit"], trump, self.my_hand)
+        if index not in legal_plays:
+            # Illegal card
+            print "Error, {} is  not a legal play".format(str(card_to_play))
+            return False
+
         self.player_card_index = index
         return True
 
