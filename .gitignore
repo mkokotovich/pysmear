@@ -1,6 +1,10 @@
 # Database
 war_stats.db
 
+GTAGS
+GPATH
+GRTAGS
+
 *.jpg
 
 # Byte-compiled / optimized / DLL files

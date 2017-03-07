@@ -7,6 +7,11 @@ jack_hearts = pydealer.Card(value="Jack", suit="Hearts")
 jack_spades = pydealer.Card(value="Jack", suit="Spades")
 jack_diamonds = pydealer.Card(value="Jack", suit="Diamonds")
 jack_clubs = pydealer.Card(value="Jack", suit="Clubs")
+jick_of = {}
+jick_of["Hearts"] = jack_diamonds
+jick_of["Spades"] = jack_clubs
+jick_of["Diamonds"] = jack_hearts
+jick_of["Clubs"] = jack_spades
 
 class SmearNeedInput(Exception):
     """Raised when the engine needs user input"""
@@ -127,6 +132,13 @@ class SmearUtils():
 
         # Find indices from the lead suit
         lead_suit_indices = stack.find(lead_suit, sort=True, ranks=POKER_RANKS)
+
+        # Remove the jick, as it is trump, not part of it's usual suit
+        jick = jick_of[trump]
+        for index in lead_suit_indices:
+            if stack[index] == jick:
+                lead_suit_indices.remove(index)
+
         if len(lead_suit_indices) == 0:
             # No lead suit, can play anything
             return range(0, len(stack))
@@ -138,15 +150,7 @@ class SmearUtils():
     @staticmethod
     def get_trump_indices(trump, stack):
         trump_indices = stack.find(trump, sort=True, ranks=POKER_RANKS)
-        jick = None
-        if trump == "Spades":
-            jick = jack_clubs
-        elif trump == "Clubs":
-            jick = jack_spades
-        elif trump == "Hearts":
-            jick = jack_diamonds
-        elif trump == "Diamonds":
-            jick = jack_hearts
+        jick = jick_of[trump]
         if jick in stack.cards:
             SmearUtils.insert_card_into_sorted_index_list(trump_indices, stack, stack.find(jick.abbrev)[0])
         return trump_indices

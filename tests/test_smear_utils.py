@@ -163,3 +163,29 @@ class TestGetTrumpIndices(unittest.TestCase):
         self.assertEqual(1, len(indices))
         self.assertEqual(indices[0], self.cards.index(self.jack_clubs))
 
+
+class TestGetLegalPlayIndices(unittest.TestCase):
+    def setUp(self):
+        self.trump = "Spades"
+        self.jack_spades = pydealer.Card(value="Jack", suit="Spades")
+        self.jack_clubs = pydealer.Card(value="Jack", suit="Clubs")
+        self.ace_spades = pydealer.Card(value="Ace", suit="Spades")
+        self.two_clubs = pydealer.Card(value="2", suit="Clubs")
+        self.two_hearts = pydealer.Card(value="2", suit="Hearts")
+        self.nine_spades = pydealer.Card(value="9", suit="Spades")
+        self.six_hearts = pydealer.Card("6", "Hearts")
+        self.seven_hearts = pydealer.Card("7", "Hearts")
+        self.nine_clubs = pydealer.Card(value="9", suit="Clubs")
+        self.queen_diamonds = pydealer.Card(value="Queen", suit="Diamonds")
+
+        self.queen_spades = pydealer.Card("Queen", "Spades")
+        self.ten_spades = pydealer.Card("10", "Spades")
+        self.seven_spades = pydealer.Card("7", "Spades")
+        self.four_spades = pydealer.Card("4", "Spades")
+
+    def test_jick_is_only_club_when_clubs_lead(self):
+        self.cards = [self.six_hearts, self.seven_hearts, self.ten_spades, self.jack_clubs, self.queen_diamonds]
+        self.my_hand = pydealer.Stack(cards=self.cards)
+        indices = utils.get_legal_play_indices("Clubs", self.trump, self.my_hand)
+        self.assertEqual(len(self.cards), len(indices))
+
