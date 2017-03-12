@@ -104,6 +104,24 @@ class SmearEngineApi:
         return self.smear.get_hand_id()
 
 
+    def get_bids_submitted_so_far(self):
+        all_bids = None
+        try:
+            all_bids = self.smear.hand_manager.current_hand.get_all_bids()
+        except:
+            pass
+
+        if all_bids is not None:
+            # populate the usernames since we have that info here
+            for i in range(0, len(all_bids)):
+                player_id = all_bids[i]["username"]
+                if type(0) == type(player_id):
+                    player_name = self.smear.get_players()[player_id].name
+                    all_bids[i]["username"] = player_name
+
+        return all_bids
+
+
     def get_bid_info_for_player(self, player_name):
         player = None
         for player_itr in self.smear.get_players():
