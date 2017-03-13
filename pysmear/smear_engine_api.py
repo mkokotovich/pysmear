@@ -104,6 +104,12 @@ class SmearEngineApi:
         return self.smear.get_hand_id()
 
 
+    def get_dealer(self):
+        dealer_id = self.smear.dealer
+        dealer_name = self.smear.get_players()[dealer_id].name
+        return dealer_name
+
+
     def get_bids_submitted_so_far(self):
         all_bids = None
         try:
