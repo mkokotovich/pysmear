@@ -143,6 +143,7 @@ class SmearGameManager:
             player_info = {}
             player_info["username"] = self.players[i].name
             player_info["score"] = self.scores[i]
+            player_info["game_points"] = self.players[i].calculate_game_score()
             player_infos.append(player_info)
         return player_infos
 
