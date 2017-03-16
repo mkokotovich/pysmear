@@ -199,7 +199,7 @@ class SmearHandManager:
         return msg
 
     def next_player_id(self, current_id):
-        next_id = current_id + 1
+        next_id = int(current_id) + 1
         if next_id == self.num_players:
             next_id = 0
         return next_id

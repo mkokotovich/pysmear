@@ -128,6 +128,42 @@ class SmearEngineApi:
         return all_bids
 
 
+    def get_player_who_we_are_waiting_for(self, bidding):
+        player_id = None
+        previous_player = None
+        if bidding:
+            all_bids = self.smear.hand_manager.current_hand.get_all_bids()
+            if len(all_bids) == 0:
+                player_id = self.smear.hand_manager.next_player_id(self.smear.dealer)
+            elif len(all_bids) == self.desired_players:
+                player_id = self.smear.hand_manager.current_hand.bidder
+            else:
+                previous_player = all_bids[-1]["username"]
+        else:
+            cards_played = self.smear.hand_manager.current_hand.get_cards_played()
+            if len(cards_played) == 0:
+                player_id = self.smear.hand_manager.current_hand.first_player
+            elif len(cards_played) == self.desired_players:
+                player_id = ""
+            else:
+                previous_player = cards_played[-1]["username"]
+
+        if player_id is None:
+            # We don't know if previous_player will be a string or an id
+            previous_player_id = previous_player
+            if type(0) != type(previous_player):
+                player_name_list = [ player.name for player in self.smear.hand_manager.get_players() ]
+                previous_player_id = player_name_list.index(previous_player)
+            player_id = self.smear.hand_manager.next_player_id(previous_player_id)
+
+        # populate the username since we have that info here
+        player_name = player_id
+        if type(0) == type(player_id):
+            player_name = self.smear.get_players()[player_id].name
+
+        return player_name
+
+
     def get_bid_info_for_player(self, player_name):
         player = None
         for player_itr in self.smear.get_players():
