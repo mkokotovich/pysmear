@@ -21,8 +21,8 @@ class SmearEngineApi:
         self.game_finished = False
 
 
-    def create_new_game(self, num_players, num_human_players, cards_to_deal=6, score_to_play_to=11):
-        self.smear = SmearGameManager(cards_to_deal=cards_to_deal, score_to_play_to=score_to_play_to, debug=self.debug)
+    def create_new_game(self, num_players, num_human_players, cards_to_deal=6, score_to_play_to=11, num_teams=0):
+        self.smear = SmearGameManager(cards_to_deal=cards_to_deal, score_to_play_to=score_to_play_to, num_teams=num_teams, debug=self.debug)
         self.desired_players = num_players
         self.desired_human_players = num_human_players
 
