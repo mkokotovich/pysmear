@@ -64,10 +64,21 @@ class SmearHandManager:
         self.remaining_players = self.num_players
         self.current_player = 0
         self.card_counting_info = CardCounting(self.num_players, self.debug)
+        self.teams = []
+        self.add_players_to_teams()
 
     def reset_players(self):
         for i in range(0, self.num_players):
             self.players[i].reset()
+
+    def add_players_to_teams(self):
+        for i in range(0, self.num_players):
+            if self.players[i].team_id is not None:
+                # If we haven't added a list for this team, add an empty list
+                if len(self.teams) <= self.players[i].team_id:
+                    self.teams.append([])
+                # Add player_id to team
+                self.teams[self.players[i].team_id].append(self.players[i].player_id)
 
     def deal_new_deck(self):
         self.deck = pydealer.Deck(ranks=POKER_RANKS)
@@ -101,12 +112,49 @@ class SmearHandManager:
                 return False
         return True
 
+
+    def set_players_score_to(self, player_id, points):
+        self.scores[player_id] = points
+
+
+    def add_point_to_a_players_score(self, player_id):
+        self.scores[player_id] += 1
+
+
+    def player_was_set(self, player_id, points):
+        self.add_to_score(player_id, was_set=True, set_points=points)
+
+
+    def add_to_score(self, player_id, was_set=False, set_points=0):
+        if len(self.teams) > 0:
+            # We are playing with teams. Add the points to each member of the team.
+            team_to_add = None
+            for team in self.teams:
+                if player_id in team:
+                    team_to_add = team
+                    break
+            if team_to_add is None:
+                print "Unable to find player {} in any team".format(player_id)
+                return
+            for player in team_to_add:
+                if not was_set:
+                    self.add_point_to_a_players_score(player)
+                else:
+                    self.set_players_score_to(player, set_points)
+        else:
+            # Not playing with teams, just add the points to the player
+            if not was_set:
+                self.add_point_to_a_players_score(player_id)
+            else:
+                self.set_players_score_to(player_id, set_points)
+
+
     def get_scores(self, dealer_id):
         if self.forced_two_set:
             self.scores = {}
             for i in range(0, self.num_players):
                 self.scores[i] = 0
-            self.scores[dealer_id] = -2
+            self.player_was_set(dealer_id, -2)
             return self.scores
 
         if not self.is_hand_over():
@@ -141,30 +189,30 @@ class SmearHandManager:
             if self.players[i].has_jick_of_trump(self.current_hand.trump):
                 jick_id = i
         # Award high
-        self.scores[current_high_id] += 1
+        self.add_to_score(current_high_id)
         self.hand_results["high_winner"] = current_high_id
         if self.debug:
             print "{} won high with a {}".format(self.players[current_high_id].name, current_high)
         # Award low
-        self.scores[self.current_low_id] += 1
+        self.add_to_score(self.current_low_id)
         self.hand_results["low_winner"] = self.current_low_id
         if self.debug:
             print "{} won low with a {}".format(self.players[self.current_low_id].name, self.current_low)
         # Award jack, if it was won
         if jack_id is not None:
-            self.scores[jack_id] += 1
+            self.add_to_score(jack_id)
             self.hand_results["jack_winner"] = jack_id
             if self.debug:
                 print "{} won jack".format(self.players[jack_id].name)
         # Award jick, if it was won
         if jick_id is not None:
-            self.scores[jick_id] += 1
+            self.add_to_score(jick_id)
             self.hand_results["jick_winner"] = jick_id
             if self.debug:
                 print "{} won jick".format(self.players[jick_id].name)
         # Award game. No ties for game, there is just no winner then
         if len(current_game_winner_ids) == 1:
-            self.scores[current_game_winner_ids[0]] += 1
+            self.add_to_score(current_game_winner_ids[0])
             self.hand_results["game_winner"] = current_game_winner_ids[0]
             if self.debug:
                 print "{} won game with {} points".format(self.players[current_game_winner_ids[0]].name, current_game_winning_score)
@@ -176,7 +224,7 @@ class SmearHandManager:
         if self.scores[self.current_hand.bidder] < self.current_hand.bid:
             if self.debug:
                 print "{} bid {} and only got {}: is set!".format(self.players[self.current_hand.bidder].name, self.current_hand.bid, self.scores[self.current_hand.bidder])
-            self.scores[self.current_hand.bidder] = -self.current_hand.bid
+            self.player_was_set(self.current_hand.bidder, -self.current_hand.bid)
         else:
             if self.debug:
                 print "{} got their bid of {} with {} points".format(self.players[self.current_hand.bidder].name, self.current_hand.bid, self.scores[self.current_hand.bidder])

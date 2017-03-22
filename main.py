@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + "/pydealer")
 from pysmear import smear_simulator
 
 def main():
+    #one_test=False
     one_test=True
     if one_test:
         num_runs = 1

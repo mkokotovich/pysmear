@@ -26,6 +26,7 @@ class Player(object):
         self.playing_logic = playing_logic
         self.bidding_logic = BasicBidding(debug=debug)
         self.player_id = None
+        self.team_id = None
 
     def reset(self):
         self.hand = pydealer.Stack()
@@ -37,6 +38,9 @@ class Player(object):
     def set_player_id(self, player_id):
         self.player_id = player_id
         self.playing_logic.player_id = player_id
+
+    def set_team_id(self, team_id):
+        self.team_id = team_id
 
     def set_initial_cards(self, initial_cards):
         self.hand = pydealer.Stack()

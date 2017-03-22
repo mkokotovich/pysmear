@@ -8,8 +8,9 @@ from smear_utils import SmearNeedInput
 
 
 class SmearGameManager:
-    def __init__(self, num_players=0, cards_to_deal=6, score_to_play_to=11, debug=False):
+    def __init__(self, num_players=0, cards_to_deal=6, score_to_play_to=11, debug=False, num_teams=0):
         self.num_players = num_players
+        self.num_teams = num_teams
         self.cards_to_deal = cards_to_deal
         self.players = {}
         self.debug = debug
@@ -38,6 +39,8 @@ class SmearGameManager:
             print("Adding {} with index {}".format(player.name, self.num_players))
         self.players[self.num_players] = player
         player.set_player_id(self.num_players)
+        if self.num_teams is not 0:
+            player.set_team_id(self.num_players % self.num_teams)
         self.num_players += 1
 
     def reset_game(self):
