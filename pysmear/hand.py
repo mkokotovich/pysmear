@@ -149,6 +149,55 @@ class SmearHandManager:
                 self.set_players_score_to(player_id, set_points)
 
 
+    def calculate_game_winner(self):
+        game_winning_score = 0
+        game_winning_id = None
+        current_winning_players = []
+        if len(self.teams) > 0:
+            # We are playing with teams. Sum the game points for each member. But keep track of
+            # only one player per team, as that is what the GUI will show
+            for team in self.teams:
+                team_game_score = 0
+                high_player_score = 0
+                high_player_id = 0
+                for player_id in team:
+                    # Find that player's game score
+                    player_score = self.players[player_id].calculate_game_score()
+                    # Add the score to the team game score
+                    team_game_score += player_score
+                    # Determine if this is the player that should "win" game in the UI
+                    if high_player_score < player_score:
+                        high_player_score = player_score
+                        high_player_id = player_id
+                if game_winning_score < team_game_score:
+                    game_winning_score = team_game_score
+                    current_winning_players = [ high_player_id ]
+                elif game_winning_score == team_game_score:
+                    current_winning_players.append(high_player_id)
+        else:
+            # Not playing with teams, just find the player's score
+            for player in self.players:
+                game_winning_score = player.calculate_game_score()
+                if game_winning_score < game_score:
+                    game_winning_score = game_score
+                    current_winning_players = [ player.player_id ]
+                elif game_winning_score == game_score:
+                    current_winning_players.append(player.player_id)
+        # Check to make sure there is no tie
+        if len(current_winning_players) != 1:
+            # Tie, no one wins
+            if self.debug:
+                print "No one won game, there was a tie at {} points between {}".format(game_winning_score, ", ".join(self.players[x].name for x in current_winning_players))
+            return None
+        else:
+            # We have a winner
+            game_winning_id = current_winning_players[0]
+
+        if self.debug:
+            print "{} won game with {} points".format(self.players[game_winning_id].name, game_winning_score)
+        return game_winning_id
+
+
     def get_scores(self, dealer_id):
         if self.forced_two_set:
             self.scores = {}
@@ -161,22 +210,14 @@ class SmearHandManager:
             print "Hand isn't over yet"
             return None
         self.scores = {}
-        current_game_winner_ids = []
-        current_game_winning_score = 0
         current_high_id = 0
         current_high = None
         jack_id = None
         jick_id = None
+        game_winning_id = self.calculate_game_winner()
         for i in range(0, self.num_players):
             # Initialize each player's score
             self.scores[i] = 0
-            # Calculate the game score
-            game_score = self.players[i].calculate_game_score()
-            if current_game_winning_score < game_score:
-                current_game_winning_score = game_score
-                current_game_winner_ids = [ i ]
-            elif current_game_winning_score == game_score:
-                current_game_winner_ids.append(i)
             # Check to see if we have high
             high = self.players[i].get_high_trump_card(self.current_hand.trump)
             if (not high == None) and (current_high == None or utils.is_less_than(current_high, high, self.current_hand.trump)):
@@ -210,24 +251,22 @@ class SmearHandManager:
             self.hand_results["jick_winner"] = jick_id
             if self.debug:
                 print "{} won jick".format(self.players[jick_id].name)
-        # Award game. No ties for game, there is just no winner then
-        if len(current_game_winner_ids) == 1:
-            self.add_to_score(current_game_winner_ids[0])
-            self.hand_results["game_winner"] = current_game_winner_ids[0]
-            if self.debug:
-                print "{} won game with {} points".format(self.players[current_game_winner_ids[0]].name, current_game_winning_score)
+        # Award game. No ties for game, so if game_winning_id is None do not award game
+        if game_winning_id is not None:
+            self.add_to_score(game_winning_id)
+            self.hand_results["game_winner"] = game_winning_id
         else:
             self.hand_results["game_winner"] = ""
-            if self.debug:
-                print "No one won game, there was a tie at {} points between {}".format(current_game_winning_score, ", ".join(self.players[x].name for x in current_game_winner_ids))
         # Check to see if bidder was set
         if self.scores[self.current_hand.bidder] < self.current_hand.bid:
             if self.debug:
                 print "{} bid {} and only got {}: is set!".format(self.players[self.current_hand.bidder].name, self.current_hand.bid, self.scores[self.current_hand.bidder])
             self.player_was_set(self.current_hand.bidder, -self.current_hand.bid)
+            self.hand_results["bidder_set"] = True
         else:
             if self.debug:
                 print "{} got their bid of {} with {} points".format(self.players[self.current_hand.bidder].name, self.current_hand.bid, self.scores[self.current_hand.bidder])
+            self.hand_results["bidder_set"] = False
 
         return self.scores
 
