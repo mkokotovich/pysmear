@@ -56,6 +56,10 @@ class SmearEngineApi:
         return names
 
 
+    def get_points_to_play_to(self):
+        return self.smear.score_to_play_to
+
+
     def start_game(self):
         if self.debug:
             print "\n\n Starting game \n"
