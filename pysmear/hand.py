@@ -176,13 +176,13 @@ class SmearHandManager:
                     current_winning_players.append(high_player_id)
         else:
             # Not playing with teams, just find the player's score
-            for player in self.players:
-                game_winning_score = player.calculate_game_score()
+            for player_id in range(0, self.num_players):
+                game_score = self.players[player_id].calculate_game_score()
                 if game_winning_score < game_score:
                     game_winning_score = game_score
-                    current_winning_players = [ player.player_id ]
+                    current_winning_players = [ player_id ]
                 elif game_winning_score == game_score:
-                    current_winning_players.append(player.player_id)
+                    current_winning_players.append(player_id)
         # Check to make sure there is no tie
         if len(current_winning_players) != 1:
             # Tie, no one wins
