@@ -32,7 +32,7 @@ def main():
         if master_commit_id == travis_commit_id:
             # Commit's match
             print "Current commit: " + last_build_state
-            if last_build_state == "passed" or last_build_state == "failed"
+            if last_build_state == "passed" or last_build_state == "failed":
                 return
         else:
             print "Current commit has NOT been picked up by travis yet"
