@@ -56,6 +56,21 @@ class SmearEngineApi:
         return names
 
 
+    def get_team_id_for_player(self, player_name):
+        player = None
+        for player_itr in self.smear.get_players():
+            if player_itr.name == player_name:
+                player = player_itr
+        if player == None:
+            print "Error: unable to find {}".format(player_name)
+            return None
+        return player.team_id
+
+
+    def get_num_teams(self):
+        return self.smear.num_teams
+
+
     def get_points_to_play_to(self):
         return self.smear.score_to_play_to
 
