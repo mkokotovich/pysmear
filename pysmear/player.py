@@ -57,10 +57,10 @@ class Player(object):
         return msg
 
     # Returns a single card
-    def play_card(self, current_hand, card_counting_info):
+    def play_card(self, current_hand, card_counting_info, teams):
         if self.hand.size == 0:
             return None
-        card_index = self.playing_logic.choose_card(current_hand, card_counting_info, self.hand)
+        card_index = self.playing_logic.choose_card(current_hand, card_counting_info, self.hand, teams)
         card_to_play = self.hand[card_index]
         del self.hand[card_index]
         return card_to_play

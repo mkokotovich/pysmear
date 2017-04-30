@@ -350,7 +350,7 @@ class SmearHandManager:
             if self.debug:
                 # Grab this before playing a card so that card is included
                 msg = str(self.players[self.current_player])
-            card = self.players[self.current_player].play_card(self.current_hand, self.card_counting_info)
+            card = self.players[self.current_player].play_card(self.current_hand, self.card_counting_info, self.teams)
             # Because you don't need to take low home to get the point
             self.update_low_if_needed(card, self.current_player)
             if self.debug:

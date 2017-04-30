@@ -95,8 +95,8 @@ class CardCounting:
         return None
 
 
-    # Returns true if it is known that no one else in the trick can take this card
-    def safe_to_play(self, player_id, card, current_trick):
+    # Returns true if it is known that no one else (besides teammates) in the trick can take this card
+    def safe_to_play(self, player_id, card, current_trick, teams):
         # How many players still need to play in the trick, -1 to account for self
         remaining_num_players = self.num_players - len(current_trick.cards) - 1
         highest_of_suit = False
@@ -113,7 +113,10 @@ class CardCounting:
         # For each remaining player:
         for i in range(0, remaining_num_players):
             next_player = (player_id + 1) % self.num_players
-            if utils.is_trump(card, current_trick.trump):
+            if utils.is_on_same_team(player_id, next_player, teams):
+                # This is a teammate
+                continue
+            elif utils.is_trump(card, current_trick.trump):
                 # If we don't have the highest remaining trump, then we need everyone after
                 # us to be out of trump
                 if self.player_out_of_cards[next_player]["Trump"]:
@@ -131,7 +134,10 @@ class CardCounting:
             # If we made it through the if/else's, that means this player could have cards that can take ours
             return False
 
-        # If we have made it this far, and it beats the current_winning_card, it is safe
+        # If we have made it this far, and it beats the current_winning_card
+        # (or the current_winning_card belongs to a teammate) then it is safe
+        if utils.is_on_same_team(player_id, current_trick.current_winning_id, teams):
+            return True
         return utils.is_new_card_higher(current_trick.current_winning_card, card, current_trick.trump)
 
 

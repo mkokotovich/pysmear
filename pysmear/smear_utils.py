@@ -171,3 +171,15 @@ class SmearUtils():
             elif card.value == "Jack":
                 game_score += 1
         return game_score
+
+
+    # Returns true if other_player is on same team as player_id
+    @staticmethod
+    def is_on_same_team(player_id, other_player, teams):
+        for team in teams:
+            if player_id in team:
+                return other_player in team
+            elif other_player in team:
+                return player_id in team
+        return False
+

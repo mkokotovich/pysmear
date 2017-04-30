@@ -43,7 +43,7 @@ class TestSafeToPlay(unittest.TestCase):
         self.cc.cards_played["Trump"].append(self.jack_spades)
 
         self.current_trick.cards = [ self.two_diamonds ]
-        safe = self.cc.safe_to_play(0, self.jack_clubs, self.current_trick)
+        safe = self.cc.safe_to_play(0, self.jack_clubs, self.current_trick, [])
         self.assertEqual(safe, True)
 
 
@@ -54,13 +54,13 @@ class TestSafeToPlay(unittest.TestCase):
         self.cc.card_was_played(3, self.seven_clubs, self.current_trick)
 
         self.current_trick.cards = []
-        safe = self.cc.safe_to_play(0, self.two_spades, self.current_trick)
+        safe = self.cc.safe_to_play(0, self.two_spades, self.current_trick, [])
         self.assertEqual(safe, True)
 
     def test_jick_is_safe_if_only_player_behind_me_is_out(self):
         self.cc.player_out_of_cards[1]["Trump"] = True
         self.current_trick.cards = [ self.two_diamonds, self.seven_clubs ]
-        safe = self.cc.safe_to_play(0, self.jack_clubs, self.current_trick)
+        safe = self.cc.safe_to_play(0, self.jack_clubs, self.current_trick, [])
         self.assertEqual(safe, True)
 
 
