@@ -11,6 +11,7 @@ class SmearPlayingLogic:
     def __init__(self, debug=False):
         self.debug = debug
         self.player_id = None
+        self.teams = None
 
     def choose_card(self, current_hand, card_counting_info, my_hand, teams):
         pass
