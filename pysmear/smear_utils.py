@@ -183,3 +183,12 @@ class SmearUtils():
                 return player_id in team
         return False
 
+
+    # Returns list of teammates
+    @staticmethod
+    def my_team(player_id, teams):
+        for team in teams:
+            if player_id in team:
+                return team
+        return []
+

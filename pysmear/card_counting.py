@@ -148,3 +148,15 @@ class CardCounting:
                 jboys += 1
         return jboys < 2
 
+
+    def is_teammate_taking_trick(self, player_id, current_trick, teams):
+        if teams is None or []:
+            return False
+        if utils.is_on_same_team(player_id, current_trick.current_winning_id, teams):
+            # Test to see if teammate is taking the trick by calling safe_to_play with his/her card
+            if self.safe_to_play(player_id, current_trick.current_winning_card, current_trick, teams):
+                # The card is going to take the trick
+                return True
+        return False
+
+

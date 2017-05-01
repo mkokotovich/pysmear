@@ -311,6 +311,7 @@ class CautiousTaker(SmearPlayingLogic):
                 continue
             if my_hand[index].value not in "Ace King Queen Jack 10":
                 idx = index
+                break
         if idx is not None and self.debug:
             print "get_a_loser chooses {}".format(my_hand[idx])
         return idx
@@ -340,6 +341,7 @@ class CautiousTaker(SmearPlayingLogic):
                 # Try to skip 10s if we can
                 continue
             idx = index
+            break
         if idx == None:
             idx = indices[0]
         if idx is not None and self.debug:
@@ -347,69 +349,27 @@ class CautiousTaker(SmearPlayingLogic):
         return idx
 
 
-    def choose_card(self, current_hand, card_counting_info, my_hand, teams):
-        idx = None
-        # First player, leading the trick...
-        if len(current_hand.current_trick.cards) == 0:
-            # Play A, K, Q of trump
-            idx = self.get_A_K_Q_of_trump(my_hand, current_hand.trump)
-            if idx is None and len(my_hand) == 6:
-                # (If bidder and this is first trick, play lowest trump)
-                idx = self.get_lowest_trump(my_hand, current_hand.trump)
-            # Play A, K, Q, J of other suits
-            if idx is None:
-                idx = self.get_A_K_Q_J_of_off_suit(my_hand, current_hand.trump)
-            # Play low of other suit
-            if idx is None:
-                idx = self.get_below_10_of_off_suit(my_hand, current_hand.trump)
-            # Play lowest trump
-            if idx is None:
-                idx = self.get_lowest_trump(my_hand, current_hand.trump)
-            # Play anything (should be just 10 off suit at this point)
-            if idx is None:
-                idx = self.get_any_card(my_hand)
-        else:
-            # Not the first player
-            # If I can take a Jack or Jick, take it
-            idx = self.take_jack_or_jick_if_possible(my_hand, current_hand.current_trick, card_counting_info)
-            # If I can take a 10, take it
-            if idx is None:
-                idx = self.take_ten_if_possible(my_hand, current_hand.current_trick, card_counting_info)
-            # If there are high trump still out but I can safely take home my jack or jick, play it
-            if idx is None:
-                idx = self.take_jack_or_jick_if_high_cards_are_out(my_hand, current_hand.current_trick, card_counting_info)
-            # If I can safely take home a ten, take it
-            if idx is None:
-                idx = self.take_home_ten_safely(my_hand, current_hand.current_trick, card_counting_info)
-            # If I can take the trick with a non-trump, take it
-            if idx is None:
-                idx = self.take_with_off_suit(my_hand, current_hand.current_trick, card_counting_info)
-            # If there is a face card and I have two or more low trump, take it
-            if idx is None:
-                idx = self.take_with_low_trump_if_game_points(my_hand, current_hand.current_trick, card_counting_info)
-            # Play a loser
-            if idx is None:
-                idx = self.get_a_loser(my_hand, current_hand.current_trick)
-            # Play lowest trump
-            if idx is None:
-                idx = self.get_least_valuable_trump(my_hand, current_hand.current_trick.trump)
-            # At this point we only have 10s and face cards left. Play the lowest of those
-            if idx == None:
-                idx = self.get_the_least_worst_card_to_lose(my_hand, current_hand.current_trick)
-
-        return idx
-
-
-class CautiousTakerTeam(CautiousTaker):
-
-    #TODO
     def give_teammate_jack_or_jick_if_possible(my_hand, current_trick, card_counting_info, teams):
+        if teams is None or []:
+            return None
         # Is my teammate taking this trick?
+        if card_counting_info.is_teammate_taking_trick(self.player_id, current_trick, teams):
+            indices = utils.get_trump_indices(current_trick.trump, my_hand)
+            for index in indices:
+                if my_hand[index].value == "Jack":
+                    return index
         return None
 
 
-    #TODO
     def give_teammate_ten_if_possible(my_hand, current_trick, card_counting_info, teams):
+        if teams is None or []:
+            return None
+        # Is my teammate taking this trick?
+        if card_counting_info.is_teammate_taking_trick(self.player_id, current_trick, teams):
+            indices = utils.get_legal_play_indices(current_trick.trump, my_hand)
+            for index in indices:
+                if my_hand[index].value == "10":
+                    return index
         return None
 
 
@@ -470,4 +430,5 @@ class CautiousTakerTeam(CautiousTaker):
                 idx = self.get_the_least_worst_card_to_lose(my_hand, current_hand.current_trick)
 
         return idx
+
 
