@@ -111,3 +111,11 @@ class TestHighestCardStillOut(unittest.TestCase):
         card = self.cc.highest_card_still_out("Spades", True)
         self.assertEqual(card, self.ten_spades)
 
+    def test_ace_is_highest(self):
+        card = self.cc.highest_card_still_out("Spades", True)
+        self.assertEqual(card, self.ace_spades)
+
+    def test_ace_is_still_highest_after_played_if_ignored(self):
+        card = self.cc.highest_card_still_out("Spades", True, self.ace_spades)
+        self.assertEqual(card, self.ace_spades)
+

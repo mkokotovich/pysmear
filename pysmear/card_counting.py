@@ -72,7 +72,16 @@ class CardCounting:
             return "Unknown"
         
 
-    def highest_card_still_out(self, suit, is_trump):
+    def card_has_been_played(self, card, lookup_suit, ignore_this_card):
+        has_been_played = False
+        if card in self.cards_played[lookup_suit]:
+            has_been_played = True
+        if ignore_this_card == card:
+            has_been_played = False
+        return has_been_played
+
+
+    def highest_card_still_out(self, suit, is_trump, ignore_this_card=None):
         card = pydealer.Card("Ace", suit)
         lookup_suit = suit
         if is_trump:
@@ -86,30 +95,30 @@ class CardCounting:
                 # Last card was jack, force this card to be Jick, and still run the loop for 10
                 card.value = "Jack"
                 card.suit = self.jick_suit_for(suit)
-                if card not in self.cards_played[lookup_suit]:
+                if not self.card_has_been_played(card, lookup_suit, ignore_this_card):
                     return card
                 card.suit = suit
             card.value = value
-            if card not in self.cards_played[lookup_suit]:
+            if not self.card_has_been_played(card, lookup_suit, ignore_this_card):
                 return card
         return None
 
 
     # Returns true if it is known that no one else (besides teammates) in the trick can take this card
-    def safe_to_play(self, player_id, card, current_trick, teams):
+    def safe_to_play(self, player_id, card, current_trick, teams, ignore_this_card=None):
         # How many players still need to play in the trick, -1 to account for self
         remaining_num_players = self.num_players - len(current_trick.cards) - 1
         highest_of_suit = False
 
         # First check to see if it is the highest remaining card
         if utils.is_trump(card, current_trick.trump):
-            if card == self.highest_card_still_out(current_trick.trump, True):
+            if card == self.highest_card_still_out(current_trick.trump, True, ignore_this_card):
                 # If this is highest remaining Trump, it is definitely safe
                 if self.debug:
                     print "safe_to_play {} True: Higest remaining trump".format(card)
                 return True
         else:
-            if card == self.highest_card_still_out(card.suit, False):
+            if card == self.highest_card_still_out(card.suit, False, ignore_this_card):
                 highest_of_suit = True
 
         # For each remaining player:
@@ -170,7 +179,7 @@ class CardCounting:
             return False
         if utils.is_on_same_team(player_id, current_trick.current_winner_id, teams):
             # Test to see if teammate is taking the trick by calling safe_to_play with his/her card
-            if self.safe_to_play(player_id, current_trick.current_winning_card, current_trick, teams):
+            if self.safe_to_play(player_id, current_trick.current_winning_card, current_trick, teams, current_trick.current_winning_card):
                 # The card is going to take the trick
                 return True
         return False
