@@ -183,7 +183,7 @@ class CautiousTaker(SmearPlayingLogic):
                 # If no AKQ, check to see if I have a Jack that can safely take the Jick
                 indices = utils.get_trump_indices(current_trick.trump, my_hand)
                 for index in indices:
-                    if my_hand[index].value == "Jack" and my_hand[index].suit == current_trick.trump and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick):
+                    if my_hand[index].value == "Jack" and my_hand[index].suit == current_trick.trump and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick, self.teams):
                         idx = index
                         break
         if idx is not None and self.debug:
@@ -206,14 +206,14 @@ class CautiousTaker(SmearPlayingLogic):
                 for index in indices:
                     if utils.is_trump(my_hand[index], current_trick.trump):
                         continue
-                    if utils.is_new_card_higher(current_trick.current_winning_card, my_hand[index], current_trick.trump) and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick):
+                    if utils.is_new_card_higher(current_trick.current_winning_card, my_hand[index], current_trick.trump) and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick, self.teams):
                         idx = index
                         break
             # Then check to see if I can safely take it with a jack or jick
             if idx is None:
                 indices = utils.get_trump_indices(current_trick.trump, my_hand)
                 for index in indices:
-                    if my_hand[index].value == "Jack" and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick):
+                    if my_hand[index].value == "Jack" and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick, self.teams):
                         idx = index
                         break
             # Then check to see if I can take it with a low trump (including 10)
@@ -239,7 +239,7 @@ class CautiousTaker(SmearPlayingLogic):
             return None
         indices = utils.get_trump_indices(current_trick.trump, my_hand)
         for index in indices:
-            if my_hand[index].value == "Jack" and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick):
+            if my_hand[index].value == "Jack" and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick, self.teams):
                 if my_hand[index].suit == current_trick.trump and highest_card.value in "Ace King Queen":
                     # If I have a Jack, play if there are still A K Q out
                     idx = index
@@ -262,10 +262,10 @@ class CautiousTaker(SmearPlayingLogic):
                 # Save for later, try other 10s first
                 ten_trump = index
                 continue
-            if my_hand[index].value == "10" and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick):
+            if my_hand[index].value == "10" and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick, self.teams):
                 idx = index
                 break
-        if idx is None and ten_trump is not None and card_counting_info.safe_to_play(self.player_id, my_hand[ten_trump], current_trick):
+        if idx is None and ten_trump is not None and card_counting_info.safe_to_play(self.player_id, my_hand[ten_trump], current_trick, self.teams):
             idx = ten_trump
 
         if idx is not None and self.debug:
@@ -280,7 +280,7 @@ class CautiousTaker(SmearPlayingLogic):
             if utils.is_trump(my_hand[index], current_trick.trump):
                 # Skip all trump
                 continue
-            if utils.is_new_card_higher(current_trick.current_winning_card, my_hand[index], current_trick.trump) and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick):
+            if utils.is_new_card_higher(current_trick.current_winning_card, my_hand[index], current_trick.trump) and card_counting_info.safe_to_play(self.player_id, my_hand[index], current_trick, self.teams):
                 # Find the lowest card that can win the trick
                 idx = index
                 break
@@ -349,31 +349,38 @@ class CautiousTaker(SmearPlayingLogic):
         return idx
 
 
-    def give_teammate_jack_or_jick_if_possible(my_hand, current_trick, card_counting_info, teams):
-        if teams is None or []:
+    def give_teammate_jack_or_jick_if_possible(self, my_hand, current_trick, card_counting_info):
+        idx = None
+        if self.teams == None or self.teams == []:
             return None
-        # Is my teammate taking this trick?
-        if card_counting_info.is_teammate_taking_trick(self.player_id, current_trick, teams):
+        if card_counting_info.is_teammate_taking_trick(self.player_id, current_trick, self.teams):
             indices = utils.get_trump_indices(current_trick.trump, my_hand)
             for index in indices:
                 if my_hand[index].value == "Jack":
-                    return index
-        return None
+                    idx = index
+                    break
+        if idx is not None and self.debug:
+            print "give_teammate_jack_or_jick_if_possible chooses {}".format(my_hand[idx])
+        return idx
 
 
-    def give_teammate_ten_if_possible(my_hand, current_trick, card_counting_info, teams):
-        if teams is None or []:
+    def give_teammate_ten_if_possible(self, my_hand, current_trick, card_counting_info):
+        idx = None
+        if self.teams == None or self.teams == []:
             return None
-        # Is my teammate taking this trick?
-        if card_counting_info.is_teammate_taking_trick(self.player_id, current_trick, teams):
-            indices = utils.get_legal_play_indices(current_trick.trump, my_hand)
+        if card_counting_info.is_teammate_taking_trick(self.player_id, current_trick, self.teams):
+            indices = utils.get_legal_play_indices(current_trick.lead_suit, current_trick.trump, my_hand)
             for index in indices:
                 if my_hand[index].value == "10":
-                    return index
-        return None
+                    idx = index
+                    break
+        if idx is not None and self.debug:
+            print "give_teammate_ten_if_possible chooses {}".format(my_hand[idx])
+        return idx
 
 
     def choose_card(self, current_hand, card_counting_info, my_hand, teams):
+        self.teams = teams
         idx = None
         # First player, leading the trick...
         if len(current_hand.current_trick.cards) == 0:
@@ -397,7 +404,7 @@ class CautiousTaker(SmearPlayingLogic):
         else:
             # Not the first player
             # Give my teammate a jack or jick, if possible
-            idx = self.give_teammate_jack_or_jick_if_possible(my_hand, current_hand.current_trick, card_counting_info, teams)
+            idx = self.give_teammate_jack_or_jick_if_possible(my_hand, current_hand.current_trick, card_counting_info)
             # If I can take a Jack or Jick, take it
             if idx is None:
                 idx = self.take_jack_or_jick_if_possible(my_hand, current_hand.current_trick, card_counting_info)
@@ -409,7 +416,7 @@ class CautiousTaker(SmearPlayingLogic):
                 idx = self.take_jack_or_jick_if_high_cards_are_out(my_hand, current_hand.current_trick, card_counting_info)
             # Give my teammate a 10, if possible
             if idx is None:
-                idx = self.give_teammate_ten_if_possible(my_hand, current_hand.current_trick, card_counting_info, teams)
+                idx = self.give_teammate_ten_if_possible(my_hand, current_hand.current_trick, card_counting_info)
             # If I can safely take home a ten, take it
             if idx is None:
                 idx = self.take_home_ten_safely(my_hand, current_hand.current_trick, card_counting_info)

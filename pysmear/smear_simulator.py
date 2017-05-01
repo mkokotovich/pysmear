@@ -13,9 +13,8 @@ class SmearSimulator:
         self.debug = debug
         self.smear = SmearGameManager(cards_to_deal=6, debug=debug, num_teams=2)
         self.smear.add_player(Player("player0", debug=debug, playing_logic=CautiousTaker(debug=debug)))
-        #self.smear.add_player(Player("player0", debug=debug))
         self.smear.add_player(Player("player1", debug=debug))
-        self.smear.add_player(Player("player2", debug=debug))
+        self.smear.add_player(Player("player2", debug=debug, playing_logic=CautiousTaker(debug=debug)))
         self.smear.add_player(Player("player3", debug=debug))
         self.games_won = {}
         for player in [ "player0", "player1", "player2", "player3" ]:

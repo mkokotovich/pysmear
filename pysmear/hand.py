@@ -100,6 +100,7 @@ class SmearHandManager:
         self.remaining_bids = self.num_players
         self.current_bidder = 0
         self.forced_two_set = False
+        self.card_counting_info.reset_for_next_hand()
 
     def prepare_for_next_trick(self):
         self.current_hand.prepare_for_next_trick()

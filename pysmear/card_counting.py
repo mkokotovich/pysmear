@@ -105,6 +105,8 @@ class CardCounting:
         if utils.is_trump(card, current_trick.trump):
             if card == self.highest_card_still_out(current_trick.trump, True):
                 # If this is highest remaining Trump, it is definitely safe
+                if self.debug:
+                    print "safe_to_play {} True: Higest remaining trump".format(card)
                 return True
         else:
             if card == self.highest_card_still_out(card.suit, False):
@@ -115,29 +117,43 @@ class CardCounting:
             next_player = (player_id + 1) % self.num_players
             if utils.is_on_same_team(player_id, next_player, teams):
                 # This is a teammate
+                if self.debug:
+                    print "safe_to_play {} continuing because {} is a teammate".format(card, next_player)
                 continue
             elif utils.is_trump(card, current_trick.trump):
                 # If we don't have the highest remaining trump, then we need everyone after
                 # us to be out of trump
                 if self.player_out_of_cards[next_player]["Trump"]:
+                    if self.debug:
+                        print "safe_to_play {} continuing because {} is out of trump".format(card, next_player)
                     continue
             elif highest_of_suit:
                 # If we have the highest left of that suit, then we need everyone after 
                 # us to be out of trump
                 if self.player_out_of_cards[next_player]["Trump"]:
+                    if self.debug:
+                        print "safe_to_play {} continuing because {} is out of trump".format(card, next_player)
                     continue
             else:
                 # If we don't have the highest of the suit and we don't have trump, we need
                 # everyone after us to be out of trump and that suit
                 if self.player_out_of_cards[next_player]["Trump"] and self.player_out_of_cards[next_player][card.suit]:
+                    if self.debug:
+                        print "safe_to_play {} continuing because {} is out of trump and {}".format(card, next_player, card.suit)
                     continue
             # If we made it through the if/else's, that means this player could have cards that can take ours
+            if self.debug:
+                print "safe_to_play {} False: A player could take our card".format(card)
             return False
 
         # If we have made it this far, and it beats the current_winning_card
         # (or the current_winning_card belongs to a teammate) then it is safe
-        if utils.is_on_same_team(player_id, current_trick.current_winning_id, teams):
+        if utils.is_on_same_team(player_id, current_trick.current_winner_id, teams):
+            if self.debug:
+                print "safe_to_play {} True: {} is a teammate and has the winning card".format(card, current_trick.current_winner_id)
             return True
+        if self.debug:
+            print "safe_to_play {} is_new_card_higher: {}".format(card, utils.is_new_card_higher(current_trick.current_winning_card, card, current_trick.trump))
         return utils.is_new_card_higher(current_trick.current_winning_card, card, current_trick.trump)
 
 
@@ -152,7 +168,7 @@ class CardCounting:
     def is_teammate_taking_trick(self, player_id, current_trick, teams):
         if teams is None or []:
             return False
-        if utils.is_on_same_team(player_id, current_trick.current_winning_id, teams):
+        if utils.is_on_same_team(player_id, current_trick.current_winner_id, teams):
             # Test to see if teammate is taking the trick by calling safe_to_play with his/her card
             if self.safe_to_play(player_id, current_trick.current_winning_card, current_trick, teams):
                 # The card is going to take the trick
