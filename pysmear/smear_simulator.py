@@ -9,12 +9,17 @@ from player import *
 from playing_logic import *
 #from stats import SmearStats
 class SmearSimulator:
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, num_teams=2, score_to_play_to=11):
         self.debug = debug
-        self.smear = SmearGameManager(cards_to_deal=6, debug=debug, num_teams=2)
+        self.smear = SmearGameManager(cards_to_deal=6, debug=debug, num_teams=num_teams, score_to_play_to=score_to_play_to)
         self.smear.add_player(Player("player0", debug=debug, playing_logic=CautiousTaker(debug=debug)))
         self.smear.add_player(Player("player1", debug=debug))
-        self.smear.add_player(Player("player2", debug=debug, playing_logic=CautiousTaker(debug=debug)))
+        if num_teams is not 0:
+            # If playing teams, add a smart teammate
+            self.smear.add_player(Player("player2", debug=debug, playing_logic=CautiousTaker(debug=debug)))
+        else:
+            # If not playing teams, add a simple player
+            self.smear.add_player(Player("player2", debug=debug))
         self.smear.add_player(Player("player3", debug=debug))
         self.games_won = {}
         for player in [ "player0", "player1", "player2", "player3" ]:

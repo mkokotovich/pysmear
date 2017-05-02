@@ -6,17 +6,27 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + "/pydealer")
 
 from pysmear import smear_simulator
 
+
+# Change this to run one test with debug output or 100 tests with no output
+one_test=False
+one_test=True
+
+# Change this to enable teams. 0=no teams
+num_teams=2
+
+# Change this to play to a higher score (games take longer, but smarter AI tends to win more)
+score_to_play_to=11
+
+
 def main():
-    one_test=False
-    one_test=True
     if one_test:
         num_runs = 1
-        print "Setting up..."
-        sim = smear_simulator.SmearSimulator(debug=True)
+        debug=True
     else:
         num_runs = 100
-        print "Setting up..."
-        sim = smear_simulator.SmearSimulator(debug=False)
+        debug=False
+    print "Setting up..."
+    sim = smear_simulator.SmearSimulator(debug=debug, num_teams=num_teams, score_to_play_to=score_to_play_to)
     if len(sys.argv) > 1:
         num_runs = int(sys.argv[1])
     sim.run(num_runs)
