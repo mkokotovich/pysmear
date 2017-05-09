@@ -13,12 +13,6 @@ jick_of["Spades"] = jack_clubs
 jick_of["Diamonds"] = jack_hearts
 jick_of["Clubs"] = jack_spades
 
-class SmearNeedInput(Exception):
-    """Raised when the engine needs user input"""
-    def __init__(self, arg):
-        self.strerror = arg
-        self.args = {arg}
-
 class SmearUtils():
 
 

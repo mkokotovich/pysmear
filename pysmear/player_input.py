@@ -2,10 +2,10 @@ import pydealer
 import math
 from pydealer.const import POKER_RANKS
 from smear_utils import SmearUtils as utils
-from smear_utils import SmearNeedInput
 from bidding_logic import *
 from playing_logic import *
 from card_counting import CardCounting
+from smear_exceptions import *
 
 import json
 import time

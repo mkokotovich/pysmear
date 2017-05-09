@@ -4,7 +4,7 @@ import pydealer
 from pydealer.const import POKER_RANKS
 from hand import *
 from player import Player
-from smear_utils import SmearNeedInput
+from smear_exceptions import *
 
 
 class SmearGameManager:
@@ -35,6 +35,9 @@ class SmearGameManager:
             self.players[i].reset()
 
     def add_player(self, player):
+        for existing_player in self.players.values():
+            if existing_player.name == player.name:
+                raise SmearUserHasSameName("The name {} is already taken, choose a different name".format(player.name))
         if self.debug:
             print("Adding {} with index {}".format(player.name, self.num_players))
         self.players[self.num_players] = player

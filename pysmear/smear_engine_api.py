@@ -3,10 +3,10 @@
 import sys
 from threading import Thread, Event
 import Queue
-from game_manager import SmearGameManager
+from game_manager import *
 from player import *
 from playing_logic import *
-#from stats import SmearStats
+from smear_exceptions import *
 
 
 class SmearEngineApi:
