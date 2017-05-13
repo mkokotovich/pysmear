@@ -108,15 +108,13 @@ class CardCounting:
     def safe_to_play(self, player_id, card, current_trick, teams, ignore_this_card=None):
         # How many players still need to play in the trick, -1 to account for self
         remaining_num_players = self.num_players - len(current_trick.cards) - 1
+        highest_trump = False
         highest_of_suit = False
 
         # First check to see if it is the highest remaining card
         if utils.is_trump(card, current_trick.trump):
             if card == self.highest_card_still_out(current_trick.trump, True, ignore_this_card):
-                # If this is highest remaining Trump, it is definitely safe
-                if self.debug:
-                    print "safe_to_play {} True: Higest remaining trump".format(card)
-                return True
+                highest_trump = True
         else:
             if card == self.highest_card_still_out(card.suit, False, ignore_this_card):
                 highest_of_suit = True
@@ -124,7 +122,11 @@ class CardCounting:
         # For each remaining player:
         for i in range(0, remaining_num_players):
             next_player = (player_id + 1) % self.num_players
-            if utils.is_on_same_team(player_id, next_player, teams):
+            if highest_trump:
+                if self.debug:
+                    print "safe_to_play {} continuing because it is highest remaining trump (excluding cards already played this hand)".format(card)
+                continue
+            elif utils.is_on_same_team(player_id, next_player, teams):
                 # This is a teammate
                 if self.debug:
                     print "safe_to_play {} continuing because {} is a teammate".format(card, next_player)
