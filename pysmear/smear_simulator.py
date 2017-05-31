@@ -11,7 +11,7 @@ from playing_logic import *
 class SmearSimulator:
     def __init__(self, debug=False, num_teams=2, score_to_play_to=11):
         self.debug = debug
-        self.smear = SmearGameManager(cards_to_deal=6, debug=debug, num_teams=num_teams, score_to_play_to=score_to_play_to)
+        self.smear = SmearGameManager(cards_to_deal=6, debug=debug, num_teams=num_teams, score_to_play_to=score_to_play_to, static_dir="static", graph_prefix="1234")
         self.smear.add_player(Player("player0", debug=debug, playing_logic=CautiousTaker(debug=debug)))
         self.smear.add_player(Player("player1", debug=debug))
         if num_teams is not 0:

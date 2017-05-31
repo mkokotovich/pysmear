@@ -8,9 +8,9 @@ class ScoreGraphManager():
         self.scores = {}
         self.score_to_play_to = score_to_play_to
         self.label_constants = {
-                11:[ 15, 7 ],
-                15:[ 20, 10],
-                21:[ 25, 10]
+                11:[ 15, 8 ],
+                15:[ 20, 13],
+                21:[ 25, 15]
                 }
         self.colors= [
                 "blue",
@@ -28,41 +28,45 @@ class ScoreGraphManager():
         self.scores = {}
 
 
-    def add_new_hand_to_scores(self, game_id, current_scores):
-        if game_id not in self.scores.keys():
-            self.scores[game_id] = [ [x] for x in current_scores ] 
+    def add_new_hand_to_scores(self, graph_prefix, current_scores):
+        if graph_prefix not in self.scores.keys():
+            self.scores[graph_prefix] = [ [x] for x in current_scores ] 
         else:
             for i in range(0, len(current_scores)):
-                self.scores[game_id][i].append(current_scores[i])
-        return self.scores[game_id]
+                self.scores[graph_prefix][i].append(current_scores[i])
+        return self.scores[graph_prefix]
 
 
-    def remove_game_from_scores(self, game_id):
-        del self.scores[game_id]
+    def remove_game_from_scores(self, graph_prefix):
+        del self.scores[graph_prefix]
 
 
-    def export_graph(self, game_id, filename, current_scores, player_names):
-        scores_so_far = self.add_new_hand_to_scores(game_id, current_scores)
+    def export_graph(self, graph_prefix, filename, current_scores, player_names):
+        scores_so_far = self.add_new_hand_to_scores(graph_prefix, current_scores)
 
         # Generate X-axis data
         hands = range(0, len(scores_so_far[0]))
 
+        # Set the line colors
         plt.rc('axes', prop_cycle=(cycler('color', self.colors)))
 
         # For each player, plot a line of their scores
-        for i in range(0, len(scores_so_far)):
+        for i in range(0, len(player_names)):
             plt.plot(hands, scores_so_far[i], label=player_names[i])
-
 
         # Add a legend of the player names
         plt.legend(loc='upper left')
 
         # Set graph details
         ax = plt.gca()
-        ax.set_ylim([0, self.label_constants[self.score_to_play_to][0]])
+        # Set Y axis limit
+        ax.set_ylim([-3, self.label_constants[self.score_to_play_to][0]])
+        # Set Y axis label
         ax.set_ylabel("Points")
+        # Set X axis limit and tick marks
         x_tick_max=max(self.label_constants[self.score_to_play_to][1], len(scores_so_far[0]) + 1)
         ax.set_xticks(range(0, x_tick_max))
+        # Set X axis label
         ax.set_xlabel("Hand")
 
         # Save graph to file

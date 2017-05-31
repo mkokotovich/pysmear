@@ -9,7 +9,7 @@ from score_graph import ScoreGraphManager
 
 
 class SmearGameManager:
-    def __init__(self, num_players=0, cards_to_deal=6, score_to_play_to=11, debug=False, num_teams=0, game_id=0, static_dir="static"):
+    def __init__(self, num_players=0, cards_to_deal=6, score_to_play_to=11, debug=False, num_teams=0, graph_prefix=None, static_dir=None):
         self.num_players = num_players
         self.num_teams = num_teams
         self.cards_to_deal = cards_to_deal
@@ -27,7 +27,7 @@ class SmearGameManager:
         self.trump_revealed = False
         self.forced_two_set = False
         self.score_graph = ScoreGraphManager(self.score_to_play_to)
-        self.game_id = game_id
+        self.graph_prefix = graph_prefix
         self.static_dir = static_dir
 
     def initialize_default_players(self):
@@ -60,8 +60,8 @@ class SmearGameManager:
 
     def start_game(self):
         self.hand_manager = SmearHandManager(self.players, self.cards_to_deal, self.debug)
-        self.save_score_graph([0]*self.num_players, initialize=True)
         self.start_next_hand()
+        self.save_score_graph([0]*self.num_players)
 
     def is_game_over(self):
         return self.game_over
@@ -156,8 +156,6 @@ class SmearGameManager:
             self.game_over = True
             if self.debug:
                 print "Game over with a winning score of {}".format(self.winning_score)
-        # Save a new graph
-        self.save_score_graph(new_scores)
 
     def __str__(self):
         msg = ""
@@ -204,13 +202,15 @@ class SmearGameManager:
 
 
     # Save a new graph
-    def save_score_graph(self, current_scores, initialize=False):
-        if initialize:
-            filename = "{}/game{}_initial.png".format(self.static_dir, self.game_id)
-        else:
-            filename = "{}/game{}_hand{}.png".format(self.static_dir, self.game_id, self.hand_manager.current_hand_id)
+    def save_score_graph(self, current_scores, game_is_over=False):
+        if self.static_dir is None or self.graph_prefix is None:
+            return
+        hand_id = self.hand_manager.current_hand_id
+        if game_is_over:
+            hand_id = "final"
+        filename = "{}/{}_hand{}.png".format(self.static_dir, self.graph_prefix, hand_id)
 
-        self.score_graph.export_graph(self.game_id, filename, current_scores, self.get_player_or_team_names())
+        self.score_graph.export_graph(self.graph_prefix, filename, current_scores, self.get_player_or_team_names())
     
 
     # Needs to be called only once per hand
@@ -250,8 +250,13 @@ class SmearGameManager:
         self.finish_hand()
 
         # Start the next hand
+        game_is_over = False
         if not self.is_game_over():
             self.start_next_hand()
-            return False
         else:
-            return True
+            game_is_over = True
+
+        # Save a new graph
+        self.save_score_graph(self.scores, game_is_over)
+
+        return game_is_over
