@@ -1,3 +1,5 @@
+import os
+import errno
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -41,8 +43,19 @@ class ScoreGraphManager():
         del self.scores[graph_prefix]
 
 
+    def create_directory_if_needed(self, filename):
+        dirname = os.path.dirname(filename)
+        try:
+            os.makedirs(dirname)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
+
     def export_graph(self, graph_prefix, filename, current_scores, player_names):
         scores_so_far = self.add_new_hand_to_scores(graph_prefix, current_scores)
+
+        self.create_directory_if_needed(filename)
 
         # Generate X-axis data
         hands = range(0, len(scores_so_far[0]))
