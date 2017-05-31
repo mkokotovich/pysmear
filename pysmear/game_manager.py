@@ -5,10 +5,11 @@ from pydealer.const import POKER_RANKS
 from hand import *
 from player import Player
 from smear_exceptions import *
+from score_graph import ScoreGraphManager
 
 
 class SmearGameManager:
-    def __init__(self, num_players=0, cards_to_deal=6, score_to_play_to=11, debug=False, num_teams=0):
+    def __init__(self, num_players=0, cards_to_deal=6, score_to_play_to=11, debug=False, num_teams=0, game_id=0, static_dir="static"):
         self.num_players = num_players
         self.num_teams = num_teams
         self.cards_to_deal = cards_to_deal
@@ -25,6 +26,9 @@ class SmearGameManager:
         self.bidding_is_finished = False
         self.trump_revealed = False
         self.forced_two_set = False
+        self.score_graph = ScoreGraphManager(self.score_to_play_to)
+        self.game_id = game_id
+        self.static_dir = static_dir
 
     def initialize_default_players(self):
         for i in range(0, self.num_players):
@@ -48,6 +52,7 @@ class SmearGameManager:
 
     def reset_game(self):
         self.reset_players()
+        self.score_graph.reset()
         self.scores = {}
         self.game_over = False
         self.winning_score = 0
@@ -55,6 +60,7 @@ class SmearGameManager:
 
     def start_game(self):
         self.hand_manager = SmearHandManager(self.players, self.cards_to_deal, self.debug)
+        self.save_score_graph([0]*self.num_players, initialize=True)
         self.start_next_hand()
 
     def is_game_over(self):
@@ -101,6 +107,18 @@ class SmearGameManager:
     def get_players(self):
         return self.players.values()
 
+    def get_player_or_team_names(self):
+        if self.num_teams == 0:
+            return [ x.name for x in self.players.values() ]
+        else:
+            team_names = [
+                    "Blue team",
+                    "Orange team",
+                    "Plum team",
+                    "Sienna team"
+                    ]
+            return [ team_names[x] for x in range(0, self.num_teams) ]
+
     def post_game_summary(self):
         msg = ""
         winners = self.get_winners()
@@ -138,6 +156,8 @@ class SmearGameManager:
             self.game_over = True
             if self.debug:
                 print "Game over with a winning score of {}".format(self.winning_score)
+        # Save a new graph
+        self.save_score_graph(new_scores)
 
     def __str__(self):
         msg = ""
@@ -182,7 +202,17 @@ class SmearGameManager:
             if self.debug:
                 print "Dealer ({}) was forced to take a two set".format(self.players[self.dealer].name)
 
+
+    # Save a new graph
+    def save_score_graph(self, current_scores, initialize=False):
+        if initialize:
+            filename = "{}/game{}_initial.png".format(self.static_dir, self.game_id)
+        else:
+            filename = "{}/game{}_hand{}.png".format(self.static_dir, self.game_id, self.hand_manager.current_hand_id)
+
+        self.score_graph.export_graph(self.game_id, filename, current_scores, self.get_player_or_team_names())
     
+
     # Needs to be called only once per hand
     def finish_hand(self):
         # Update scores

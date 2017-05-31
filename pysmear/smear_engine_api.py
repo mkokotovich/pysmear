@@ -19,10 +19,15 @@ class SmearEngineApi:
         self.players_who_are_finished = []
         self.game_started = False
         self.game_finished = False
+        self.static_dir = "static"
 
 
-    def create_new_game(self, num_players, num_human_players, cards_to_deal=6, score_to_play_to=11, num_teams=0):
-        self.smear = SmearGameManager(cards_to_deal=cards_to_deal, score_to_play_to=score_to_play_to, num_teams=num_teams, debug=self.debug)
+    def set_static_dir_path(self, path_to_static):
+        self.static_dir = path_to_static
+
+
+    def create_new_game(self, num_players, num_human_players, cards_to_deal=6, score_to_play_to=11, num_teams=0, game_id=0):
+        self.smear = SmearGameManager(cards_to_deal=cards_to_deal, score_to_play_to=score_to_play_to, num_teams=num_teams, debug=self.debug, game_id=game_id, static_dir=self.static_dir)
         self.desired_players = num_players
         self.desired_human_players = num_human_players
 
@@ -363,5 +368,3 @@ class SmearEngineApi:
                         pinfo["username"] = player_name
             
         return hand_results
-
-
