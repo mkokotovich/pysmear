@@ -60,11 +60,19 @@ class ScoreGraphManager():
         # Set graph details
         ax = plt.gca()
         # Set Y axis limit
-        ax.set_ylim([-3, self.label_constants[self.score_to_play_to][0]])
+        try:
+            ymax = self.label_constants[self.score_to_play_to][0]
+        except:
+            ymax = 15
+        ax.set_ylim([-3, ymax])
         # Set Y axis label
         ax.set_ylabel("Points")
         # Set X axis limit and tick marks
-        x_tick_max=max(self.label_constants[self.score_to_play_to][1], len(scores_so_far[0]) + 1)
+        try:
+            xmax = self.label_constants[self.score_to_play_to][1]
+        except:
+            xmax = 8
+        x_tick_max=max(xmax, len(scores_so_far[0]) + 1)
         ax.set_xticks(range(0, x_tick_max))
         # Set X axis label
         ax.set_xlabel("Hand")
