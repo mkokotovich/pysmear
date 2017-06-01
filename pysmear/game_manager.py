@@ -17,6 +17,7 @@ class SmearGameManager:
         self.debug = debug
         self.game_over = False
         self.winning_score = 0
+        self.winning_player = None
         self.scores = {}
         self.score_to_play_to = score_to_play_to
         self.hand_manager = None
@@ -56,6 +57,7 @@ class SmearGameManager:
         self.scores = {}
         self.game_over = False
         self.winning_score = 0
+        self.winning_player = None
         self.dealer = 0
 
     def start_game(self):
@@ -138,7 +140,6 @@ class SmearGameManager:
                 msg += "\n"
         return msg
 
-# TODO: Write better logic for winning by two and ties
     def update_scores(self, hand_scores, bidder):
         if self.debug:
             print "Current score:\n{}".format(self.format_scores(self.scores))
@@ -154,8 +155,10 @@ class SmearGameManager:
             else:
                 self.winning_score = max(self.scores.values())
             self.game_over = True
+            self.winning_player = ", ".join(self.get_winners())
+
             if self.debug:
-                print "Game over with a winning score of {}".format(self.winning_score)
+                print "Game over. {} won with a winning score of {}".format(self.winning_player, self.winning_score)
 
     def __str__(self):
         msg = ""
@@ -221,6 +224,9 @@ class SmearGameManager:
         self.all_hand_results[self.hand_manager.current_hand_id] = self.hand_manager.hand_results
         # Add whether or not the game is over
         self.all_hand_results[self.hand_manager.current_hand_id]["is_game_over"] = self.is_game_over()
+        # Add winner, if game is over
+        if self.is_game_over():
+            self.all_hand_results[self.hand_manager.current_hand_id]["overall_winner"] = self.winning_player
         # Add current scores at the end of the hand
         self.all_hand_results[self.hand_manager.current_hand_id]["player_infos"] = self.generate_player_infos()
 
