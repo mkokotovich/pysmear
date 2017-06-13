@@ -3,22 +3,21 @@ from pymongo import MongoClient
 class DbManager():
 
     def __init__(self, hostname="localhost", port=27017):
-        self.client = MongoClient("{}:{}".format(localhost, port))
+        self.client = MongoClient("{}:{}".format(hostname, port))
         self.db = self.client.smear
-        self.game_record = self.init_game_record()
+        self.game_record = {}
+        self.init_game_record(self.game_record)
 
 
-    def init_game_record(self):
-        return 
-        {
-            'date_played': None,
-            'points_to_play_to': None,
-            'num_teams': None,
-            'players': [],
-            'hands': [],
-            'winners': [],
-            'results': [],
-        }
+    def init_game_record(self, game_record):
+        game_record = {}
+        game_record['date_played'] = None
+        game_record['points_to_play_to'] = 0
+        game_record['num_teams'] = None
+        game_record['players'] = []
+        game_record['hands'] = []
+        game_record['winners'] = []
+        game_record['results'] = []
 
 
     def create_game(self, points_to_play_to, num_teams):
