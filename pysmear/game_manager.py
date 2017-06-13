@@ -9,7 +9,7 @@ from score_graph import ScoreGraphManager
 
 
 class SmearGameManager:
-    def __init__(self, num_players=0, cards_to_deal=6, score_to_play_to=11, debug=False, num_teams=0, graph_prefix=None, static_dir=None):
+    def __init__(self, num_players=0, cards_to_deal=6, score_to_play_to=11, debug=False, num_teams=0, graph_prefix=None, static_dir=None, dbm=None):
         self.num_players = num_players
         self.num_teams = num_teams
         self.cards_to_deal = cards_to_deal
@@ -30,6 +30,9 @@ class SmearGameManager:
         self.score_graph = ScoreGraphManager(self.score_to_play_to)
         self.graph_prefix = graph_prefix
         self.static_dir = static_dir
+        self.dbm = dbm
+        if self.dbm:
+            self.dbm.create_game(self.score_to_play_to, self.num_teams)
 
     def initialize_default_players(self):
         for i in range(0, self.num_players):
@@ -50,6 +53,8 @@ class SmearGameManager:
         if self.num_teams is not 0:
             player.set_team_id(self.num_players % self.num_teams)
         self.num_players += 1
+        if self.dbm:
+            self.dbm.add_player(player.name)
 
     def reset_game(self):
         self.reset_players()
@@ -61,6 +66,8 @@ class SmearGameManager:
         self.dealer = 0
 
     def start_game(self):
+        if self.dbm:
+            self.dbm.add_game_to_db_for_first_time()
         self.hand_manager = SmearHandManager(self.players, self.cards_to_deal, self.debug)
         self.start_next_hand()
         self.save_score_graph([0]*self.num_players)

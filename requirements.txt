@@ -12,3 +12,5 @@ python-dateutil==2.6.0
 pytz==2017.2
 six==1.10.0
 subprocess32==3.2.7
+mongomock==3.8.0
+sentinels==1.0.0

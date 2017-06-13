@@ -1,12 +1,19 @@
 from pymongo import MongoClient
+import pytz
+from datetime import datetime
 
 class DbManager():
 
-    def __init__(self, hostname="localhost", port=27017):
-        self.client = MongoClient("{}:{}".format(hostname, port))
+    def __init__(self, hostname="localhost", port=27017, client=None):
+        if client == None:
+            self.client = MongoClient("{}:{}".format(hostname, port))
+        else:
+            self.client = client
         self.db = self.client.smear
         self.game_record = self.init_game_record()
         self.player_map = {}
+        # Not sure if we need this yet:
+        self.game_id = None
 
 
     def init_game_record(self):
@@ -44,3 +51,12 @@ class DbManager():
         player_id = self.lookup_or_create_player(username)
         self.game_record['players'].append(player_id)
         self.player_map[username] = player_id
+
+
+    def add_game_to_db_for_first_time(self):
+        self.game_record['date_played'] = datetime.now(pytz.utc)
+        insert_result = self.db.games.insert_one(self.game_record)
+        if not insert_result.acknowledged:
+            print "Error: unable to create game in database"
+            return
+        self.game_id = insert_result.inserted_id

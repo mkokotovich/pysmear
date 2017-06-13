@@ -7,6 +7,7 @@ from game_manager import *
 from player import *
 from playing_logic import *
 from smear_exceptions import *
+from db_manager import *
 
 
 class SmearEngineApi:
@@ -21,6 +22,7 @@ class SmearEngineApi:
         self.game_finished = False
         self.static_dir =  None
         self.graph_prefix = None 
+        self.dbm = None
 
 
     def set_graph_details(self, path_to_static, graph_prefix):
@@ -32,18 +34,22 @@ class SmearEngineApi:
         return self.graph_prefix
 
 
+    def set_game_stats_database_details(self, hostname, port):
+        self.dbm = DbManager(hostname, port)
+
+
     def create_new_game(self, num_players, num_human_players, cards_to_deal=6, score_to_play_to=11, num_teams=0):
-        self.smear = SmearGameManager(cards_to_deal=cards_to_deal, score_to_play_to=score_to_play_to, num_teams=num_teams, debug=self.debug, graph_prefix=self.graph_prefix, static_dir=self.static_dir)
+        self.smear = SmearGameManager(cards_to_deal=cards_to_deal, score_to_play_to=score_to_play_to, num_teams=num_teams, debug=self.debug, graph_prefix=self.graph_prefix, static_dir=self.static_dir, dbm=self.dbm)
         self.desired_players = num_players
         self.desired_human_players = num_human_players
 
 
-    def add_player(self, player_id, interactive=False):
+    def add_player(self, username, interactive=False):
         if interactive:
-            self.smear.add_player(InteractivePlayer(player_id, debug=self.debug))
+            self.smear.add_player(InteractivePlayer(username, debug=self.debug))
             self.number_of_interactive_players += 1
         else:
-            self.smear.add_player(Player(player_id, debug=self.debug, playing_logic=CautiousTaker(debug=self.debug)))
+            self.smear.add_player(Player(username, debug=self.debug, playing_logic=CautiousTaker(debug=self.debug)))
 
 
     def all_players_added(self):
