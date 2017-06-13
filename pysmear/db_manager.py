@@ -5,19 +5,20 @@ class DbManager():
     def __init__(self, hostname="localhost", port=27017):
         self.client = MongoClient("{}:{}".format(hostname, port))
         self.db = self.client.smear
-        self.game_record = {}
-        self.init_game_record(self.game_record)
+        self.game_record = self.init_game_record()
+        self.player_map = {}
 
 
-    def init_game_record(self, game_record):
+    def init_game_record(self):
         game_record = {}
         game_record['date_played'] = None
-        game_record['points_to_play_to'] = 0
+        game_record['points_to_play_to'] = None
         game_record['num_teams'] = None
         game_record['players'] = []
         game_record['hands'] = []
         game_record['winners'] = []
         game_record['results'] = []
+        return game_record
 
 
     def create_game(self, points_to_play_to, num_teams):
@@ -40,5 +41,6 @@ class DbManager():
 
 
     def add_player(self, username):
-        player = self.lookup_or_create_player(username)
-        self.game_record['players'].append(player)
+        player_id = self.lookup_or_create_player(username)
+        self.game_record['players'].append(player_id)
+        self.player_map[username] = player_id
