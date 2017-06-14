@@ -9,11 +9,12 @@ bid =
     '_id': ObjectId('blahblah'),
     'game': ObjectId('blahblah'),
     'player': ObjectId('player1'),
-    'hand': [ 'AS', 'KS', 'QS', 'JS', 'JC', '2S' ],
+    'bidders_hand': [ 'AS', 'KS', 'QS', 'JS', 'JC', '2S' ],
     'bid_so_far': 2,
     'bid': 5,
     'high_bid': 5,
     'points_won': 5,
+    'points_lost': 0,
 }
 
 hand =
@@ -22,6 +23,7 @@ hand =
     'bids': [ ObjectId('bid1'), ObjectId('bid2') ],
     'high_bid': ObjectId('bid2'),
     'players': [ ObjectId('player1'), ObjectId('player2'), ObjectId('player3'), ObjectId('player4') ],
+    'dealer_forced_two_set': False,
 
 }
 

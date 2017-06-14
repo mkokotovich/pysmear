@@ -219,12 +219,14 @@ class SmearGameManager:
             is_high_bid = False
             # Lookup hand
             bidders_hand = None
+            player_name = None
             for player in self.get_players():
-                if player.name == bid['username']:
+                if player.player_id == bid['username']:
                     bidders_hand = [ x.abbrev for x in player.hand ]
                     is_high_bid = player.name == self.players[self.hand_manager.current_hand.bidder].name
+                    player_name = player.name
                     break
-            self.dbm.add_new_bid(username=bid['username'],
+            self.dbm.add_new_bid(username=player_name,
                     bidders_hand=bidders_hand,
                     bid=bid['bid'],
                     high_bid=self.hand_manager.current_hand.bid,
@@ -243,10 +245,50 @@ class SmearGameManager:
         self.score_graph.export_graph(self.graph_prefix, filename, current_scores, self.get_player_or_team_names())
     
 
+    # points lost defined as any points that the bidder didn't get
+    def get_bidders_points_lost(self, current_hand_scores):
+        points_lost = 0
+        bidder = self.hand_manager.current_hand.bidder
+
+        if len(self.hand_manager.teams) > 0:
+            # We are playing with teams, count each team's score once
+            for team in self.hand_manager.teams:
+                if bidder in team:
+                    # Skip the bidder's team
+                    continue
+                # Add the points from any player in the team (they are all the same)
+                points_lost += current_hand_scores[team[0]]
+        else:
+            # We are playing without teams, count everyone's score but the bidder
+            for player_id, score in current_hand_scores.items():
+                if player_id == bidder:
+                    continue
+                points_lost += score
+
+        return points_lost
+
+
+    def format_results_for_db(self, current_hand_scores):
+        results = []
+        for player_id, player in self.players.items():
+            player_result = {}
+            player_result['player'] = player.name
+            player_result['team_id'] = None
+            if len(self.hand_manager.teams) > 0:
+                for i in range(0, len(self.hand_manager.teams)):
+                    if player_id in self.hand_manager.teams[i]:
+                        player_result['team_id'] = i
+                        break
+            player_result['final_score'] = current_hand_scores[player_id]
+            results.append(player_result)
+        return results
+
+
     # Needs to be called only once per hand
     def finish_hand(self):
         # Update scores
-        self.update_scores(self.hand_manager.get_scores(self.dealer), self.hand_manager.current_hand.bidder)
+        current_hand_scores = self.hand_manager.get_scores(self.dealer)
+        self.update_scores(current_hand_scores, self.hand_manager.current_hand.bidder)
         # Save hand results
         self.all_hand_results[self.hand_manager.current_hand_id] = self.hand_manager.hand_results
         # Add whether or not the game is over
@@ -256,6 +298,17 @@ class SmearGameManager:
             self.all_hand_results[self.hand_manager.current_hand_id]["overall_winner"] = self.winning_player
         # Add current scores at the end of the hand
         self.all_hand_results[self.hand_manager.current_hand_id]["player_infos"] = self.generate_player_infos()
+        # Add results of hand (and game, if necessary) to db
+        if self.dbm:
+            bidders_points_won = current_hand_scores[self.hand_manager.current_hand.bidder]
+            bidders_points_lost = self.get_bidders_points_lost(current_hand_scores)
+            results_for_db = None
+            if self.is_game_over():
+                results_for_db = self.format_results_for_db(self.scores)
+            self.dbm.publish_hand_results(points_won = bidders_points_won,
+                    points_lost = bidders_points_lost,
+                    results = results_for_db,
+                    overall_winners = self.get_winners() if self.is_game_over() else None)
 
 
     # Can be called repeatedly
@@ -268,7 +321,7 @@ class SmearGameManager:
                 self.bidding_is_finished = True
                 if self.dbm:
                     self.add_all_bids_to_db()
-                    self.dbm.finalize_hand(self.players[self.dealer].name if self.forced_two_set else None)
+                    self.dbm.finalize_hand_creation(self.players[self.dealer].name if self.forced_two_set else None)
             if not self.forced_two_set:
                 # Only play the hand if the dealer wasn't forced to take a two set
                 if not self.trump_revealed:

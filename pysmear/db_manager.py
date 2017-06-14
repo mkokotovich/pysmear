@@ -10,11 +10,11 @@ class DbManager():
         else:
             self.client = client
         self.db = self.client.smear
-        self.game_record = self.init_game_record()
+        self.current_game_record = self.init_game_record()
         self.current_hand_record = self.init_game_record()
+        self.current_bid_record = None
         self.player_map = {}
         self.game_id = None
-        self.current_bid_id = None
 
 
     def init_game_record(self):
@@ -47,11 +47,13 @@ class DbManager():
         bid_record['bid'] = None
         bid_record['high_bid'] = None
         bid_record['points_won'] = None
+        bid_record['points_lost'] = None
+        return bid_record
 
 
     def create_game(self, points_to_play_to, num_teams):
-        self.game_record['points_to_play_to'] = points_to_play_to
-        self.game_record['num_teams'] = num_teams
+        self.current_game_record['points_to_play_to'] = points_to_play_to
+        self.current_game_record['num_teams'] = num_teams
 
 
     def lookup_or_create_player(self, username):
@@ -70,13 +72,13 @@ class DbManager():
 
     def add_player(self, username):
         player_id = self.lookup_or_create_player(username)
-        self.game_record['players'].append(player_id)
+        self.current_game_record['players'].append(player_id)
         self.player_map[username] = player_id
 
 
     def add_game_to_db_for_first_time(self):
-        self.game_record['date_played'] = datetime.now(pytz.utc)
-        insert_result = self.db.games.insert_one(self.game_record)
+        self.current_game_record['date_played'] = datetime.now(pytz.utc)
+        insert_result = self.db.games.insert_one(self.current_game_record)
         if not insert_result.acknowledged:
             print "Error: unable to create game in database"
             return
@@ -85,14 +87,16 @@ class DbManager():
 
     def add_new_bid(self, username, bidders_hand, bid, high_bid, is_high_bid):
         # Create bid record
-        new_bid = init_bid_record()
+        new_bid = self.init_bid_record()
         new_bid['game'] = self.game_id
         new_bid['player'] = self.player_map[username]
         new_bid['bidders_hand'] = bidders_hand
         new_bid['bid_so_far'] = None #TODO
         new_bid['bid'] = bid
         new_bid['high_bid'] = high_bid
-        new_bid['points_won'] = None # Will be added after hand is completed
+        # Will be added after hand is completed
+        new_bid['points_won'] = None
+        new_bid['points_lost'] = None
 
         # Add bid to database
         insert_result = self.db.bids.insert_one(new_bid)
@@ -103,16 +107,16 @@ class DbManager():
         # Add bid to hand
         self.current_hand_record['bids'].append(insert_result.inserted_id)
         if is_high_bid:
-            self.current_bid_id = insert_result.inserted_id
+            self.current_bid_record = new_bid
             self.current_hand_record['high_bid'] = insert_result.inserted_id
 
 
     def create_new_hand(self):
         self.current_hand_record = self.init_hand_record()
-        self.current_hand_record['players'] = list(self.game_record['players'])
+        self.current_hand_record['players'] = list(self.current_game_record['players'])
 
 
-    def finalize_hand(self, dealer_forced_two_set):
+    def finalize_hand_creation(self, dealer_forced_two_set):
         if dealer_forced_two_set:
             self.current_hand_record['dealer_forced_two_set'] = self.player_map[dealer_forced_two_set]
         # Add hand to database
@@ -120,4 +124,22 @@ class DbManager():
         if not insert_result.acknowledged:
             print "Error: unable to create bid of {} for {} in database".format(bid, username)
             return
-        self.game_record['hands'].append(insert_result.inserted_id)
+        self.current_game_record['hands'].append(insert_result.inserted_id)
+
+
+    def convert_usernames_to_object_ids(self, results):
+        for player_result in results:
+            player_id = self.player_map[player_result["player"]]
+            player_result["player"] = player_id
+        return results
+
+
+    def publish_hand_results(self, points_won, points_lost, results, overall_winners):
+        if overall_winners:
+            # Game is over
+            self.current_game_record["winners"] = overall_winners
+            self.current_game_record["results"] = self.convert_usernames_to_object_ids(results)
+        self.current_bid_record["points_won"] = points_won
+        self.current_bid_record["points_lost"] = points_lost
+        self.db.bids.update({'_id':self.current_bid_record['_id']}, self.current_bid_record)
+        self.db.games.update({'_id':self.current_game_record['_id']}, self.current_game_record)
