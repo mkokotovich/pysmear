@@ -195,6 +195,8 @@ class SmearGameManager:
     # Needs to be called only once per hand
     def start_next_hand(self):
         self.hand_manager.reset_for_next_hand()
+        if self.dbm:
+            self.dbm.create_new_hand()
         self.set_next_dealer()
         self.forced_two_set = False
         self.bidding_is_finished = False
@@ -209,6 +211,24 @@ class SmearGameManager:
             # Forced set, dealer get_scores() will return appropriately
             if self.debug:
                 print "Dealer ({}) was forced to take a two set".format(self.players[self.dealer].name)
+    
+
+    # Needs to be called only once per hand
+    def add_all_bids_to_db(self):
+        for bid in self.hand_manager.current_hand.get_all_bids():
+            is_high_bid = False
+            # Lookup hand
+            bidders_hand = None
+            for player in self.get_players():
+                if player.name == bid['username']:
+                    bidders_hand = [ x.abbrev for x in player.hand ]
+                    is_high_bid = player.name == self.players[self.hand_manager.current_hand.bidder].name
+                    break
+            self.dbm.add_new_bid(username=bid['username'],
+                    bidders_hand=bidders_hand,
+                    bid=bid['bid'],
+                    high_bid=self.hand_manager.current_hand.bid,
+                    is_high_bid=is_high_bid)
 
 
     # Save a new graph
@@ -246,6 +266,9 @@ class SmearGameManager:
             if not self.bidding_is_finished:
                 self.continue_bidding()
                 self.bidding_is_finished = True
+                if self.dbm:
+                    self.add_all_bids_to_db()
+                    self.dbm.finalize_hand(self.players[self.dealer].name if self.forced_two_set else None)
             if not self.forced_two_set:
                 # Only play the hand if the dealer wasn't forced to take a two set
                 if not self.trump_revealed:

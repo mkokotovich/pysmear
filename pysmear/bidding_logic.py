@@ -160,6 +160,10 @@ class BasicBidding(SmearBiddingLogic):
                 bid = 0
 
         self.bid = int(math.floor(bid))
+
+        if self.bid <= current_hand.bid:
+            # We have to bid greater than current bid
+            self.bid = 0
         self.trump = bid_trump
 
 
