@@ -4,11 +4,12 @@ from datetime import datetime
 
 class DbManager():
 
-    def __init__(self, hostname="localhost", port=27017, client=None):
+    def __init__(self, hostname="localhost", port=27017, client=None, debug=False):
         if client == None:
             self.client = MongoClient("{}:{}".format(hostname, port))
         else:
             self.client = client
+        self.debug = debug
         self.db = self.client.smear
         self.current_game_record = self.init_game_record()
         self.current_hand_record = self.init_game_record()
@@ -62,7 +63,18 @@ class DbManager():
             find_result = self.db.players.find({'email': email})
             if find_result.count() != 0:
                 player_found_by_email = True
+                if self.debug:
+                    print "Found {} by email: {}".format(username, email)
+                if 'username' not in find_result[0] or find_result[0]['username'] != username:
+                    if self.debug:
+                        print "Updating username to {}".format(username)
+                    player_record = dict(find_result[0])
+                    player_record['username'] = username
+                    self.db.players.update({'_id':player_record['_id']}, player_record)
+
         if not player_found_by_email:
+            if self.debug:
+                print "Could not find {} by email".format(username)
             find_result = self.db.players.find({'username': username})
         player_id = None
         if find_result.count() != 0:
@@ -72,6 +84,8 @@ class DbManager():
             player_record["username"] = username
             if email:
                 player_record["email"] = email
+            if self.debug:
+                print "Could not find {}, inserting into player database".format(username)
             insert_result = self.db.players.insert_one(player_record)
             if not insert_result.acknowledged:
                 print "Error: unable to create user {} in database".format(username)

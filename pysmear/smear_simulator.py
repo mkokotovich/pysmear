@@ -14,7 +14,7 @@ class SmearSimulator:
         self.debug = debug
         self.dbm = None
         if log_to_db:
-            self.dbm = DbManager("localhost", "27017")
+            self.dbm = DbManager("localhost", "27017", debug=self.debug)
         self.smear = SmearGameManager(cards_to_deal=6, debug=debug, num_teams=num_teams, score_to_play_to=score_to_play_to, static_dir="static", graph_prefix="1234", dbm=self.dbm)
         self.smear.add_player(Player("player0", debug=debug, playing_logic=CautiousTaker(debug=debug)))
         self.smear.add_player(Player("player1", debug=debug))
