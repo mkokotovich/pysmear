@@ -4,13 +4,13 @@ from datetime import datetime
 
 class DbManager():
 
-    def __init__(self, hostname="localhost", port=27017, client=None, debug=False):
+    def __init__(self, database="smear", hostname="localhost", port=27017, client=None, debug=False):
         if client == None:
             self.client = MongoClient("{}:{}".format(hostname, port))
         else:
             self.client = client
         self.debug = debug
-        self.db = self.client.smear
+        self.db = self.client[database]
         self.current_game_record = self.init_game_record()
         self.current_hand_record = self.init_game_record()
         self.current_bid_record = None

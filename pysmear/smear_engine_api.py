@@ -34,11 +34,11 @@ class SmearEngineApi:
         return self.graph_prefix
 
 
-    def set_game_stats_database_details(self, hostname=None, port=None, client=None):
+    def set_game_stats_database_details(self, hostname=None, port=None, client=None, database=None):
         if client:
-            self.dbm = DbManager(client=client, debug=self.debug)
+            self.dbm = DbManager(database=database, client=client, debug=self.debug)
         else:
-            self.dbm = DbManager(hostname, port, debug=self.debug)
+            self.dbm = DbManager(database=database, hostname=hostname, port=port, debug=self.debug)
 
 
     def create_new_game(self, num_players, num_human_players, cards_to_deal=6, score_to_play_to=11, num_teams=0):
