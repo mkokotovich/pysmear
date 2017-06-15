@@ -56,13 +56,23 @@ class DbManager():
         self.current_game_record['num_teams'] = num_teams
 
 
-    def lookup_or_create_player(self, username):
-        find_result = self.db.players.find({'username': username})
+    def lookup_or_create_player(self, username, email):
+        player_found_by_email = False
+        if email:
+            find_result = self.db.players.find({'email': email})
+            if find_result.count() != 0:
+                player_found_by_email = True
+        if not player_found_by_email:
+            find_result = self.db.players.find({'username': username})
         player_id = None
         if find_result.count() != 0:
             player_id = find_result[0]['_id']
         else:
-            insert_result = self.db.players.insert_one({'username': username})
+            player_record = {}
+            player_record["username"] = username
+            if email:
+                player_record["email"] = email
+            insert_result = self.db.players.insert_one(player_record)
             if not insert_result.acknowledged:
                 print "Error: unable to create user {} in database".format(username)
                 return None
@@ -70,8 +80,8 @@ class DbManager():
         return player_id
 
 
-    def add_player(self, username):
-        player_id = self.lookup_or_create_player(username)
+    def add_player(self, username, email=None):
+        player_id = self.lookup_or_create_player(username, email)
         self.current_game_record['players'].append(player_id)
         self.player_map[username] = player_id
 

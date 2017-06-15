@@ -42,7 +42,7 @@ class SmearGameManager:
         for i in range(0, self.num_players):
             self.players[i].reset()
 
-    def add_player(self, player):
+    def add_player(self, player, email=None):
         for existing_player in self.players.values():
             if existing_player.name == player.name:
                 raise SmearUserHasSameName("The name {} is already taken, choose a different name".format(player.name))
@@ -54,7 +54,7 @@ class SmearGameManager:
             player.set_team_id(self.num_players % self.num_teams)
         self.num_players += 1
         if self.dbm:
-            self.dbm.add_player(player.name)
+            self.dbm.add_player(player.name, email)
 
     def reset_game(self):
         self.reset_players()
@@ -221,7 +221,7 @@ class SmearGameManager:
             bidders_hand = None
             player_name = None
             for player in self.get_players():
-                if player.player_id == bid['username']:
+                if player.player_id == bid['username'] or player.name == bid['username']:
                     bidders_hand = [ x.abbrev for x in player.hand ]
                     is_high_bid = player.name == self.players[self.hand_manager.current_hand.bidder].name
                     player_name = player.name
