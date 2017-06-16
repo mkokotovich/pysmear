@@ -305,7 +305,8 @@ class SmearGameManager:
             results_for_db = None
             if self.is_game_over():
                 results_for_db = self.format_results_for_db(self.scores)
-            self.dbm.publish_hand_results(points_won = bidders_points_won,
+            self.dbm.publish_hand_results(trump = self.get_trump(),
+                    points_won = bidders_points_won,
                     points_lost = bidders_points_lost,
                     results = results_for_db,
                     overall_winners = self.get_winners() if self.is_game_over() else None)

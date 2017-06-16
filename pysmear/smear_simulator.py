@@ -10,12 +10,18 @@ from playing_logic import *
 from db_manager import DbManager
 
 class SmearSimulator:
-    def __init__(self, debug=False, num_teams=2, score_to_play_to=11, log_to_db=False):
+    def __init__(self, debug=False, num_teams=2, score_to_play_to=11, log_to_db=False, create_graphs=False):
         self.debug = debug
         self.dbm = None
         if log_to_db:
-            self.dbm = DbManager("localhost", "27017", debug=self.debug)
-        self.smear = SmearGameManager(cards_to_deal=6, debug=debug, num_teams=num_teams, score_to_play_to=score_to_play_to, static_dir="static", graph_prefix="1234", dbm=self.dbm)
+            self.dbm = DbManager(hostname="localhost", port="27017", debug=self.debug)
+        static_dir=None
+        graph_prefix=None
+        if create_graphs:
+            static_dir="static"
+            graph_prefix="1234"
+
+        self.smear = SmearGameManager(cards_to_deal=6, debug=debug, num_teams=num_teams, score_to_play_to=score_to_play_to, static_dir=static_dir, graph_prefix=graph_prefix, dbm=self.dbm)
         self.smear.add_player(Player("player0", debug=debug, playing_logic=CautiousTaker(debug=debug)))
         self.smear.add_player(Player("player1", debug=debug))
         if num_teams is not 0:

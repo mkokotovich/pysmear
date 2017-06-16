@@ -20,7 +20,7 @@ class DbManager():
 
     def init_game_record(self):
         game_record = {}
-        game_record['date_played'] = None
+        game_record['date_added'] = None
         game_record['points_to_play_to'] = None
         game_record['num_teams'] = None
         game_record['players'] = []
@@ -32,6 +32,7 @@ class DbManager():
 
     def init_hand_record(self):
         hand_record = {}
+        hand_record['date_added'] = None
         hand_record['bids'] = []
         hand_record['high_bid'] = None
         hand_record['players'] = []
@@ -41,11 +42,13 @@ class DbManager():
 
     def init_bid_record(self):
         bid_record = {}
+        bid_record['date_added'] = None
         bid_record['game'] = None
         bid_record['player'] = None
         bid_record['bidders_hand'] = []
         bid_record['bid_so_far'] = None
         bid_record['bid'] = None
+        bid_record['bid_trump'] = None
         bid_record['high_bid'] = None
         bid_record['points_won'] = None
         bid_record['points_lost'] = None
@@ -101,7 +104,7 @@ class DbManager():
 
 
     def add_game_to_db_for_first_time(self):
-        self.current_game_record['date_played'] = datetime.now(pytz.utc)
+        self.current_game_record['date_added'] = datetime.utcnow()
         insert_result = self.db.games.insert_one(self.current_game_record)
         if not insert_result.acknowledged:
             print "Error: unable to create game in database"
@@ -112,6 +115,7 @@ class DbManager():
     def add_new_bid(self, username, bidders_hand, bid, high_bid, is_high_bid):
         # Create bid record
         new_bid = self.init_bid_record()
+        new_bid['date_added'] = datetime.utcnow()
         new_bid['game'] = self.game_id
         new_bid['player'] = self.player_map[username]
         new_bid['bidders_hand'] = bidders_hand
@@ -119,6 +123,7 @@ class DbManager():
         new_bid['bid'] = bid
         new_bid['high_bid'] = high_bid
         # Will be added after hand is completed
+        new_bid['bid_trump'] = None
         new_bid['points_won'] = None
         new_bid['points_lost'] = None
 
@@ -137,6 +142,7 @@ class DbManager():
 
     def create_new_hand(self):
         self.current_hand_record = self.init_hand_record()
+        self.current_hand_record['date_added'] = datetime.utcnow()
         self.current_hand_record['players'] = list(self.current_game_record['players'])
 
 
@@ -158,11 +164,12 @@ class DbManager():
         return results
 
 
-    def publish_hand_results(self, points_won, points_lost, results, overall_winners):
+    def publish_hand_results(self, trump, points_won, points_lost, results, overall_winners):
         if overall_winners:
             # Game is over
             self.current_game_record["winners"] = overall_winners
             self.current_game_record["results"] = self.convert_usernames_to_object_ids(results)
+        self.current_bid_record["bid_trump"] = trump
         self.current_bid_record["points_won"] = points_won
         self.current_bid_record["points_lost"] = points_lost
         self.db.bids.update({'_id':self.current_bid_record['_id']}, self.current_bid_record)
