@@ -109,7 +109,7 @@ class TestDbManager(unittest.TestCase):
         self.dbm.create_new_hand()
         self.dbm.add_new_bid("player0", ["AS", "KS", "QS", "JS", "JC", "2S" ], 4, 4, True)
         self.dbm.finalize_hand_creation(False)
-        self.dbm.publish_hand_results(5, 0, None, None)
+        self.dbm.publish_hand_results("Spades", 5, 0, None, None)
         game_result = self.dbm.db.games.find()
         self.assertEqual(game_result.count(), 1)
         self.assertEqual(len(game_result[0]["hands"]), 1)
@@ -131,7 +131,7 @@ class TestDbManager(unittest.TestCase):
         results = []
         results.append({ "player": "player0", "team_id": None, "final_score": 11 })
         results.append({ "player": "player1", "team_id": None, "final_score": 3 })
-        self.dbm.publish_hand_results(5, 0, results, [ "player0" ])
+        self.dbm.publish_hand_results("Spades", 5, 0, results, [ "player0" ])
         game_result = self.dbm.db.games.find()
         self.assertEqual(game_result.count(), 1)
         self.assertEqual(len(game_result[0]["hands"]), 1)
