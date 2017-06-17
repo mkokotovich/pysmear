@@ -135,7 +135,7 @@ class TestDbManager(unittest.TestCase):
         game_result = self.dbm.db.games.find()
         self.assertEqual(game_result.count(), 1)
         self.assertEqual(len(game_result[0]["hands"]), 1)
-        self.assertEqual(game_result[0]["winners"][0], "player0")
+        self.assertEqual(game_result[0]["winners"][0], self.dbm.player_map["player0"])
         self.assertEqual(game_result[0]["results"], results)
         bid_result = self.dbm.db.bids.find({'_id': self.dbm.current_bid_record['_id']})
         self.assertEqual(bid_result.count(), 1)
