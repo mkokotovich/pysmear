@@ -167,7 +167,7 @@ class DbManager():
     def publish_hand_results(self, trump, points_won, points_lost, results, overall_winners):
         if overall_winners:
             # Game is over
-            self.current_game_record["winners"] = overall_winners
+            self.current_game_record["winners"] = [ self.player_map[x] for x in overall_winners ]
             self.current_game_record["results"] = self.convert_usernames_to_object_ids(results)
         self.current_bid_record["bid_trump"] = trump
         self.current_bid_record["points_won"] = points_won
