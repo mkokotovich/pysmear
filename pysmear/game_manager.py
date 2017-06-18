@@ -64,6 +64,8 @@ class SmearGameManager:
         self.winning_score = 0
         self.winning_player = None
         self.dealer = 0
+        if self.dbm:
+            self.dbm.create_game(self.score_to_play_to, self.num_teams)
 
     def start_game(self):
         if self.dbm:

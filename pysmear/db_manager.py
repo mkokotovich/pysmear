@@ -56,6 +56,12 @@ class DbManager():
 
 
     def create_game(self, points_to_play_to, num_teams):
+        self.game_id = None
+        # For some reason this needs to persist between games for the simulator
+        if "players" in self.current_game_record and len(self.current_game_record['players']) > 0:
+            save_players = self.current_game_record['players']
+            self.current_game_record = self.init_game_record()
+            self.current_game_record['players'] = save_players
         self.current_game_record['points_to_play_to'] = points_to_play_to
         self.current_game_record['num_teams'] = num_teams
 
