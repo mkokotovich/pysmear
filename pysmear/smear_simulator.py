@@ -10,7 +10,7 @@ from playing_logic import *
 from db_manager import DbManager
 
 class SmearSimulator:
-    def __init__(self, debug=False, num_teams=2, score_to_play_to=11, log_to_db=False, create_graphs=False):
+    def __init__(self, debug=False, num_teams=2, num_players=4, score_to_play_to=11, log_to_db=False, create_graphs=False):
         self.debug = debug
         self.dbm = None
         if log_to_db:
@@ -22,17 +22,15 @@ class SmearSimulator:
             graph_prefix="1234"
 
         self.smear = SmearGameManager(cards_to_deal=6, debug=debug, num_teams=num_teams, score_to_play_to=score_to_play_to, static_dir=static_dir, graph_prefix=graph_prefix, dbm=self.dbm)
-        self.smear.add_player(Player("player0", debug=debug, playing_logic=CautiousTaker(debug=debug)))
-        self.smear.add_player(Player("player1", debug=debug))
-        if num_teams is not 0:
-            # If playing teams, add a smart teammate
-            self.smear.add_player(Player("player2", debug=debug, playing_logic=CautiousTaker(debug=debug)))
-        else:
-            # If not playing teams, add a simple player
-            self.smear.add_player(Player("player2", debug=debug))
-        self.smear.add_player(Player("player3", debug=debug))
+        player_list = []
+        for i in range(0, num_players):
+            if i % 2 == 0 and (i == 0 or num_teams != 0):
+                self.smear.add_player(Player("player{}".format(i), debug=debug, playing_logic=CautiousTaker(debug=debug)))
+            else:
+                self.smear.add_player(Player("player{}".format(i), debug=debug))
+            player_list.append("player{}".format(i))
         self.games_won = {}
-        for player in [ "player0", "player1", "player2", "player3" ]:
+        for player in player_list:
             self.games_won[player] = 0
         self.num_games = 0
         #self.smear_stats = SmearStats()

@@ -73,31 +73,33 @@ class DbManager():
             if find_result.count() != 0:
                 player_found_by_email = True
                 if self.debug:
-                    print "Found {} by email: {}".format(username, email)
+                    print "DB: Found {} by email: {}".format(username, email)
                 if 'username' not in find_result[0] or find_result[0]['username'] != username:
                     if self.debug:
-                        print "Updating username to {}".format(username)
+                        print "DB: Updating username to {}".format(username)
                     player_record = dict(find_result[0])
                     player_record['username'] = username
                     self.db.players.update({'_id':player_record['_id']}, player_record)
 
         if not player_found_by_email:
             if self.debug:
-                print "Could not find {} by email".format(username)
+                print "DB: Could not find {} by email".format(username)
             find_result = self.db.players.find({'username': username})
         player_id = None
         if find_result.count() != 0:
             player_id = find_result[0]['_id']
+            if self.debug:
+                print "DB: Found existing user: {}".format(player_id)
         else:
             player_record = {}
             player_record["username"] = username
             if email:
                 player_record["email"] = email
             if self.debug:
-                print "Could not find {}, inserting into player database".format(username)
+                print "DB: Could not find {}, inserting into player database".format(username)
             insert_result = self.db.players.insert_one(player_record)
             if not insert_result.acknowledged:
-                print "Error: unable to create user {} in database".format(username)
+                print "DB: Error: unable to create user {} in database".format(username)
                 return None
             player_id = insert_result.inserted_id
         return player_id
@@ -113,9 +115,11 @@ class DbManager():
         self.current_game_record['date_added'] = datetime.utcnow()
         insert_result = self.db.games.insert_one(self.current_game_record)
         if not insert_result.acknowledged:
-            print "Error: unable to create game in database"
+            print "DB: Error: unable to create game in database"
             return
         self.game_id = insert_result.inserted_id
+        if self.debug:
+            print "DB: Adding game {} to database".format(self.game_id)
 
 
     def add_new_bid(self, username, bidders_hand, bid, high_bid, is_high_bid):
@@ -136,8 +140,10 @@ class DbManager():
         # Add bid to database
         insert_result = self.db.bids.insert_one(new_bid)
         if not insert_result.acknowledged:
-            print "Error: unable to create bid of {} for {} in database".format(bid, username)
+            print "DB: Error: unable to create bid of {} for {} in database".format(bid, username)
             return
+        if self.debug:
+            print "DB: Adding bid of {} from {} (id: {}) to database".format(bid, username, insert_result.inserted_id)
 
         # Add bid to hand
         self.current_hand_record['bids'].append(insert_result.inserted_id)
@@ -158,9 +164,11 @@ class DbManager():
         # Add hand to database
         insert_result = self.db.hands.insert_one(self.current_hand_record)
         if not insert_result.acknowledged:
-            print "Error: unable to create bid of {} for {} in database".format(bid, username)
+            print "DB: Error: unable to create bid of {} for {} in database".format(bid, username)
             return
         self.current_game_record['hands'].append(insert_result.inserted_id)
+        if self.debug:
+            print "DB: Adding hand {} to database".format(insert_result.inserted_id)
 
 
     def convert_usernames_to_object_ids(self, results):
@@ -173,10 +181,18 @@ class DbManager():
     def publish_hand_results(self, trump, points_won, points_lost, results, overall_winners):
         if overall_winners:
             # Game is over
+            if self.debug:
+                print "DB: Game is over, adding winners and results to game"
             self.current_game_record["winners"] = [ self.player_map[x] for x in overall_winners ]
             self.current_game_record["results"] = self.convert_usernames_to_object_ids(results)
         self.current_bid_record["bid_trump"] = trump
         self.current_bid_record["points_won"] = points_won
         self.current_bid_record["points_lost"] = points_lost
-        self.db.bids.update({'_id':self.current_bid_record['_id']}, self.current_bid_record)
-        self.db.games.update({'_id':self.current_game_record['_id']}, self.current_game_record)
+        bid_update = self.db.bids.replace_one({'_id':self.current_bid_record['_id']}, self.current_bid_record)
+        if not bid_update.acknowledged or bid_update.modified_count != 1:
+            print "DB: Error: unable to update bid"
+        game_update = self.db.games.replace_one({'_id':self.current_game_record['_id']}, self.current_game_record)
+        if not game_update.acknowledged or game_update.modified_count != 1:
+            print "DB: Error: unable to update game"
+        if self.debug:
+            print "DB: Updated bid and game"

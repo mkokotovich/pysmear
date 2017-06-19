@@ -14,6 +14,9 @@ one_test=True
 # Change this to enable teams. 0=no teams
 num_teams=2
 
+# Change this to play with more or less players
+num_players=4
+
 # Change this to play to a higher score (games take longer, but smarter AI tends to win more)
 score_to_play_to=11
 
@@ -28,7 +31,7 @@ def main():
         num_runs = 100
         debug=False
     print "Setting up..."
-    sim = smear_simulator.SmearSimulator(debug=debug, num_teams=num_teams, score_to_play_to=score_to_play_to, log_to_db=log_to_db)
+    sim = smear_simulator.SmearSimulator(debug=debug, num_teams=num_teams, num_players=num_players, score_to_play_to=score_to_play_to, log_to_db=log_to_db)
     if len(sys.argv) > 1:
         num_runs = int(sys.argv[1])
     sim.run(num_runs)
