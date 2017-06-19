@@ -324,7 +324,7 @@ class CautiousTaker(SmearPlayingLogic):
         for index in indices:
             if utils.is_trump(my_hand[index], current_trick.trump):
                 continue
-            if my_hand[index].value is not "10":
+            if my_hand[index].value not in "10":
                 idx = index
                 break
         if idx is not None and self.debug:

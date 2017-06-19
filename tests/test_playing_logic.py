@@ -346,3 +346,13 @@ class TestCautiousTakerPlayingLogic(unittest.TestCase):
         index = self.pl.take_jack_or_jick_if_high_cards_are_out(self.my_hand, self.current_trick, self.card_counting_info)
         self.assertEqual(index, None)
 
+    def test_get_least_valuable_face_card_with_10_and_low_trump(self):
+        self.trump = "Spades"
+        self.cards = [self.five_spades, self.ten_clubs]
+        self.my_hand = pydealer.Stack(cards=self.cards)
+        self.current_trick = MagicMock()
+        self.current_trick.trump = self.trump
+
+        index = self.pl.get_least_valuable_face_card(self.my_hand, self.current_trick)
+        self.assertEqual(index, None)
+
