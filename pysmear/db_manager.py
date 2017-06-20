@@ -50,6 +50,8 @@ class DbManager():
         bid_record['bid'] = None
         bid_record['bid_trump'] = None
         bid_record['high_bid'] = None
+        bid_record['num_teams'] = 0
+        bid_record['num_players'] = 0
         bid_record['points_won'] = None
         bid_record['points_lost'] = None
         return bid_record
@@ -132,6 +134,8 @@ class DbManager():
         new_bid['bid_so_far'] = None #TODO
         new_bid['bid'] = bid
         new_bid['high_bid'] = high_bid
+        new_bid['num_teams'] = self.current_game_record['num_teams']
+        new_bid['num_players'] = len(self.current_game_record['players'])
         # Will be added after hand is completed
         new_bid['bid_trump'] = None
         new_bid['points_won'] = None
