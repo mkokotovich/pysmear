@@ -13,7 +13,7 @@ class SmearPlayingLogic:
         self.player_id = None
         self.teams = None
 
-    def choose_card(self, current_hand, card_counting_info, my_hand, teams):
+    def choose_card(self, current_hand, card_counting_info, my_hand, teams, is_bidder):
         pass
 
 # TODO: write more and better versions of these
@@ -75,7 +75,7 @@ class JustGreedyEnough(SmearPlayingLogic):
             lowest_index = lowest_trump_index
         return lowest_index
 
-    def choose_card(self, current_hand, card_counting_info, my_hand, teams):
+    def choose_card(self, current_hand, card_counting_info, my_hand, teams, is_bidder):
         idx = 0
         if len(current_hand.current_trick.cards) == 0:
             # I'm the first player. Choose my strongest card
@@ -290,11 +290,33 @@ class CautiousTaker(SmearPlayingLogic):
         return idx
 
 
+    def get_lowest_spare_trump_to_lead(self, my_hand, current_trick):
+        idx = None
+        indices = utils.get_trump_indices(current_trick.trump, my_hand)
+        jacks_and_jicks = 0
+        for index in indices:
+            if my_hand[index].value == "Jack":
+                jacks_and_jicks += 1
+        non_jacks = len(indices) - jacks_and_jicks
+
+        # If we have a jack or jick, make sure we keep one extra trump to protect it
+        if non_jacks > 1:
+            for index in indices:
+                if my_hand[index].value not in "Ace King Queen Jack 10":
+                    idx = index
+                    break
+
+        if idx is not None and self.debug:
+            print "get_lowest_spare_trump_to_lead chooses {}".format(my_hand[idx])
+        return idx
+
+
     def take_with_low_trump_if_game_points(self, my_hand, current_trick, card_counting_info):
         idx = None
         indices = utils.get_trump_indices(current_trick.trump, my_hand)
         game_points = utils.calculate_game_score(current_trick.cards)
-        if len(indices) > 1 and game_points > 0:
+        # Only take 3 or more game points
+        if len(indices) > 1 and game_points > 3:
             for index in indices:
                 if my_hand[index].value not in "Ace King Queen Jack 10" and utils.is_new_card_higher(current_trick.current_winning_card, my_hand[index], current_trick.trump):
                     idx = index
@@ -394,16 +416,19 @@ class CautiousTaker(SmearPlayingLogic):
         return idx
 
 
-    def choose_card(self, current_hand, card_counting_info, my_hand, teams):
+    def choose_card(self, current_hand, card_counting_info, my_hand, teams, is_bidder):
         self.teams = teams
         idx = None
         # First player, leading the trick...
         if len(current_hand.current_trick.cards) == 0:
             # Play A, K, Q of trump
             idx = self.get_A_K_Q_of_trump(my_hand, current_hand.trump)
-            if idx is None and len(my_hand) == 6:
-                # (If bidder and this is first trick, play lowest trump)
+            if idx is None and is_bidder and len(my_hand) == 6:
+                # (If bidder and I didn't have AKQ, and this is first trick, play lowest trump)
                 idx = self.get_lowest_trump(my_hand, current_hand.trump)
+            if idx is None and is_bidder and len(my_hand) == 5:
+                # If bidder and this is second trick, and I didn't have AKQ, play another trump if I have one to spare
+                idx = self.get_lowest_spare_trump_to_lead(my_hand, current_hand.current_trick)
             # Play A, K, Q, J of other suits
             if idx is None:
                 idx = self.get_A_K_Q_J_of_off_suit(my_hand, current_hand.trump)

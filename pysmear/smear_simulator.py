@@ -7,6 +7,7 @@ sys.path.insert(0, "../../pydealer")
 from game_manager import SmearGameManager
 from player import *
 from playing_logic import *
+from bidding_logic import *
 from db_manager import DbManager
 
 class SmearSimulator:
@@ -25,7 +26,7 @@ class SmearSimulator:
         player_list = []
         for i in range(0, num_players):
             if i % 2 == 0 and (i == 0 or num_teams != 0):
-                self.smear.add_player(Player("player{}".format(i), debug=debug, playing_logic=CautiousTaker(debug=debug)))
+                self.smear.add_player(Player("player{}".format(i), debug=debug, playing_logic=CautiousTaker(debug=debug), bidding_logic=BetterBidding(debug=debug)))
             else:
                 self.smear.add_player(Player("player{}".format(i), debug=debug))
             player_list.append("player{}".format(i))

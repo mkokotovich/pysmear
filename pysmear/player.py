@@ -10,7 +10,7 @@ from card_counting import CardCounting
 
 
 class Player(object):
-    def __init__(self, name, initial_cards=None, debug=False, playing_logic=None):
+    def __init__(self, name, initial_cards=None, debug=False, playing_logic=None, bidding_logic=None):
         self.hand = pydealer.Stack()
         self.pile = pydealer.Stack()
         self.bid = 0
@@ -24,7 +24,9 @@ class Player(object):
         if playing_logic is None:
             playing_logic = JustGreedyEnough()
         self.playing_logic = playing_logic
-        self.bidding_logic = BasicBidding(debug=debug)
+        if bidding_logic is None:
+            bidding_logic = BasicBidding(debug=debug)
+        self.bidding_logic = bidding_logic
         self.player_id = None
         self.team_id = None
 
@@ -60,7 +62,7 @@ class Player(object):
     def play_card(self, current_hand, card_counting_info, teams):
         if self.hand.size == 0:
             return None
-        card_index = self.playing_logic.choose_card(current_hand, card_counting_info, self.hand, teams)
+        card_index = self.playing_logic.choose_card(current_hand, card_counting_info, self.hand, teams, self.is_bidder)
         card_to_play = self.hand[card_index]
         del self.hand[card_index]
         return card_to_play
@@ -76,6 +78,7 @@ class Player(object):
         return self.bid
 
     def get_trump(self):
+        self.is_bidder = True
         self.bid_trump = self.bidding_logic.declare_trump()
         return self.bid_trump
 
