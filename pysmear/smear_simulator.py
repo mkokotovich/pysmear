@@ -28,7 +28,7 @@ class SmearSimulator:
             if i % 2 == 0 and (i == 0 or num_teams != 0):
                 self.smear.add_player(Player("player{}".format(i), debug=debug, playing_logic=CautiousTaker(debug=debug), bidding_logic=BetterBidding(debug=debug)))
             else:
-                self.smear.add_player(Player("player{}".format(i), debug=debug))
+                self.smear.add_player(Player("player{}".format(i), debug=debug, playing_logic=CautiousTaker(debug=debug)))
             player_list.append("player{}".format(i))
         self.games_won = {}
         for player in player_list:

@@ -181,6 +181,20 @@ class BetterBidding(BasicBidding):
         self.trump = ""
         self.bid = 0
 
+    def expected_points_from_high(self, num_players, my_hand, suit):
+        exp_points = super(BetterBidding, self).expected_points_from_high(num_players, my_hand, suit)
+        if exp_points < 0.3:
+            exp_points = 0
+        return exp_points
+
+
+    def expected_points_from_low(self, num_players, my_hand, suit):
+        exp_points = super(BetterBidding, self).expected_points_from_low(num_players, my_hand, suit)
+        if exp_points < 0.3:
+            exp_points = 0
+        return exp_points
+
+
     def expected_points_from_game(self, num_players, my_hand, suit):
         exp_points = 0.0
         my_trump = utils.get_trump_indices(suit, my_hand)

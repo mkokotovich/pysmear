@@ -12,10 +12,10 @@ one_test=False
 one_test=True
 
 # Change this to enable teams. 0=no teams
-num_teams=2
+num_teams=0
 
 # Change this to play with more or less players
-num_players=4
+num_players=3
 
 # Change this to play to a higher score (games take longer, but smarter AI tends to win more)
 score_to_play_to=11

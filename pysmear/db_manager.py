@@ -222,10 +222,10 @@ class DbManager():
         self.current_bid_record["points_won"] = points_won
         self.current_bid_record["points_lost"] = points_lost
         bid_update = self.db.bids.replace_one({'_id':self.current_bid_record['_id']}, self.current_bid_record)
-        if not bid_update.acknowledged or bid_update.modified_count != 1:
+        if not bid_update.acknowledged:
             print "DB: Error: unable to update bid"
         game_update = self.db.games.replace_one({'_id':self.current_game_record['_id']}, self.current_game_record)
-        if not game_update.acknowledged or game_update.modified_count != 1:
+        if not game_update.acknowledged:
             print "DB: Error: unable to update game"
         if self.debug:
             print "DB: Updated bid and game"

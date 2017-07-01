@@ -261,12 +261,12 @@ class SmearHandManager:
         # Check to see if bidder was set
         if self.scores[self.current_hand.bidder] < self.current_hand.bid:
             if self.debug:
-                print "{} bid {} and only got {}: is set!".format(self.players[self.current_hand.bidder].name, self.current_hand.bid, self.scores[self.current_hand.bidder])
+                print "BID: {} bid {} and only got {}: is set!".format(self.players[self.current_hand.bidder].name, self.current_hand.bid, self.scores[self.current_hand.bidder])
             self.player_was_set(self.current_hand.bidder, -self.current_hand.bid)
             self.hand_results["bidder_set"] = True
         else:
             if self.debug:
-                print "{} got their bid of {} with {} points".format(self.players[self.current_hand.bidder].name, self.current_hand.bid, self.scores[self.current_hand.bidder])
+                print "BID: {} got their bid of {} with {} points".format(self.players[self.current_hand.bidder].name, self.current_hand.bid, self.scores[self.current_hand.bidder])
             self.hand_results["bidder_set"] = False
 
         return self.scores
@@ -311,7 +311,7 @@ class SmearHandManager:
                 print "Illegal bid of > 5 ({}) resetting to 5".format(bid)
                 bid = 5
             if self.debug:
-                print "{} bid {} and has {}".format(self.players[self.current_bidder].name, bid, " ".join(x.abbrev for x in self.players[self.current_bidder].hand))
+                print "BID: {} bid {} and has {}".format(self.players[self.current_bidder].name, bid, " ".join(x.abbrev for x in self.players[self.current_bidder].hand))
             if bid > self.current_hand.bid:
                 self.current_hand.bid = bid
                 self.current_hand.bidder = self.current_bidder
@@ -333,7 +333,7 @@ class SmearHandManager:
     def reveal_trump(self):
         self.current_hand.set_trump(self.players[self.current_hand.bidder].get_trump())
         if self.debug:
-            print "{} picks {} to be trump".format(self.players[self.current_hand.bidder].name, self.current_hand.trump)
+            print "BID: {} picks {} to be trump".format(self.players[self.current_hand.bidder].name, self.current_hand.trump)
 
     def update_low_if_needed(self, card, player_id):
         if utils.is_trump(card, self.current_hand.trump) and (self.current_low == None or utils.is_less_than(card, self.current_low, self.current_hand.trump)):

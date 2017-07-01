@@ -167,7 +167,7 @@ class SmearGameManager:
             self.winning_player = ", ".join(self.get_winners())
 
             if self.debug:
-                print "Game over. {} won with a winning score of {}".format(self.winning_player, self.winning_score)
+                print "BID: Game over. {} won with a winning score of {}".format(self.winning_player, self.winning_score)
 
     def __str__(self):
         msg = ""
