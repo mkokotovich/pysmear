@@ -6,6 +6,7 @@ import Queue
 from game_manager import *
 from player import *
 from playing_logic import *
+from bidding_logic import *
 from smear_exceptions import *
 from db_manager import *
 
@@ -52,7 +53,7 @@ class SmearEngineApi:
             self.smear.add_player(InteractivePlayer(username, debug=self.debug), email)
             self.number_of_interactive_players += 1
         else:
-            self.smear.add_player(Player(username, debug=self.debug, playing_logic=CautiousTaker(debug=self.debug), bidding_logic=BetterBidder(debug=self.debug)))
+            self.smear.add_player(Player(username, debug=self.debug, playing_logic=CautiousTaker(debug=self.debug), bidding_logic=BetterBidding(debug=self.debug)))
 
 
     def all_players_added(self):

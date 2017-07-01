@@ -188,7 +188,10 @@ class BetterBidding(BasicBidding):
             if index in my_trump:
                 if my_hand[index].value == '10':
                     # 10 of trump is valuable for game
-                    exp_points += 0.6
+                    if len(my_trump) > 2:
+                        exp_points += 0.6
+                    else:
+                        exp_points += 0.3
                 else:
                     # All trump cards will help some
                     exp_points += 0.20

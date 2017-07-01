@@ -16,6 +16,7 @@ class DbManager():
         self.current_bid_record = None
         self.player_map = {}
         self.game_id = None
+        self.connection_errors = False
 
 
     def init_game_record(self):
@@ -58,6 +59,9 @@ class DbManager():
 
 
     def create_game(self, points_to_play_to, num_teams):
+        if self.connection_errors:
+            print "DB: skipping due to connection errors"
+            return
         self.game_id = None
         # For some reason this needs to persist between games for the simulator
         if "players" in self.current_game_record and len(self.current_game_record['players']) > 0:
@@ -69,51 +73,64 @@ class DbManager():
 
 
     def lookup_or_create_player(self, username, email):
+        if self.connection_errors:
+            print "DB: skipping due to connection errors"
+            return None
         player_found_by_email = False
-        if email:
-            find_result = self.db.players.find({'email': email})
-            if find_result.count() != 0:
-                player_found_by_email = True
-                if self.debug:
-                    print "DB: Found {} by email: {}".format(username, email)
-                if 'username' not in find_result[0] or find_result[0]['username'] != username:
-                    if self.debug:
-                        print "DB: Updating username to {}".format(username)
-                    player_record = dict(find_result[0])
-                    player_record['username'] = username
-                    self.db.players.update({'_id':player_record['_id']}, player_record)
-
-        if not player_found_by_email:
-            if self.debug:
-                print "DB: Could not find {} by email".format(username)
-            find_result = self.db.players.find({'username': username})
         player_id = None
-        if find_result.count() != 0:
-            player_id = find_result[0]['_id']
-            if self.debug:
-                print "DB: Found existing user: {}".format(player_id)
-        else:
-            player_record = {}
-            player_record["username"] = username
+        try:
             if email:
-                player_record["email"] = email
-            if self.debug:
-                print "DB: Could not find {}, inserting into player database".format(username)
-            insert_result = self.db.players.insert_one(player_record)
-            if not insert_result.acknowledged:
-                print "DB: Error: unable to create user {} in database".format(username)
-                return None
-            player_id = insert_result.inserted_id
+                find_result = self.db.players.find({'email': email})
+                if find_result.count() != 0:
+                    player_found_by_email = True
+                    if self.debug:
+                        print "DB: Found {} by email: {}".format(username, email)
+                    if 'username' not in find_result[0] or find_result[0]['username'] != username:
+                        if self.debug:
+                            print "DB: Updating username to {}".format(username)
+                        player_record = dict(find_result[0])
+                        player_record['username'] = username
+                        self.db.players.update({'_id':player_record['_id']}, player_record)
+
+            if not player_found_by_email:
+                if self.debug:
+                    print "DB: Could not find {} by email".format(username)
+                find_result = self.db.players.find({'username': username})
+            if find_result.count() != 0:
+                player_id = find_result[0]['_id']
+                if self.debug:
+                    print "DB: Found existing user: {}".format(player_id)
+            else:
+                player_record = {}
+                player_record["username"] = username
+                if email:
+                    player_record["email"] = email
+                if self.debug:
+                    print "DB: Could not find {}, inserting into player database".format(username)
+                insert_result = self.db.players.insert_one(player_record)
+                if not insert_result.acknowledged:
+                    print "DB: Error: unable to create user {} in database".format(username)
+                    return None
+                player_id = insert_result.inserted_id
+        except Exception as ex:
+            print "DB: exception reached: {}".format(str(ex))
+            self.connection_errors = True
         return player_id
 
 
     def add_player(self, username, email=None):
+        if self.connection_errors:
+            print "DB: skipping due to connection errors"
+            return
         player_id = self.lookup_or_create_player(username, email)
         self.current_game_record['players'].append(player_id)
         self.player_map[username] = player_id
 
 
     def add_game_to_db_for_first_time(self):
+        if self.connection_errors:
+            print "DB: skipping due to connection errors"
+            return
         self.current_game_record['date_added'] = datetime.utcnow()
         insert_result = self.db.games.insert_one(self.current_game_record)
         if not insert_result.acknowledged:
@@ -125,6 +142,9 @@ class DbManager():
 
 
     def add_new_bid(self, username, bidders_hand, bid, high_bid, is_high_bid):
+        if self.connection_errors:
+            print "DB: skipping due to connection errors"
+            return
         # Create bid record
         new_bid = self.init_bid_record()
         new_bid['date_added'] = datetime.utcnow()
@@ -157,12 +177,18 @@ class DbManager():
 
 
     def create_new_hand(self):
+        if self.connection_errors:
+            print "DB: skipping due to connection errors"
+            return
         self.current_hand_record = self.init_hand_record()
         self.current_hand_record['date_added'] = datetime.utcnow()
         self.current_hand_record['players'] = list(self.current_game_record['players'])
 
 
     def finalize_hand_creation(self, dealer_forced_two_set):
+        if self.connection_errors:
+            print "DB: skipping due to connection errors"
+            return
         if dealer_forced_two_set:
             self.current_hand_record['dealer_forced_two_set'] = self.player_map[dealer_forced_two_set]
         # Add hand to database
@@ -183,6 +209,9 @@ class DbManager():
 
 
     def publish_hand_results(self, trump, points_won, points_lost, results, overall_winners):
+        if self.connection_errors:
+            print "DB: skipping due to connection errors"
+            return
         if overall_winners:
             # Game is over
             if self.debug:

@@ -12,6 +12,7 @@ bid =
     'bidders_hand': [ 'AS', 'KS', 'QS', 'JS', 'JC', '2S' ],
     'bid_so_far': 2,
     'bid': 5,
+    'bid_trump': "Spades",
     'high_bid': 5,
     'points_won': 5,
     'points_lost': 0,
