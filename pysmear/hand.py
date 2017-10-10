@@ -5,6 +5,7 @@ from pydealer.const import POKER_RANKS
 from smear_utils import SmearUtils as utils
 from trick import Trick
 from card_counting import CardCounting
+from playing_logic import CautiousTaker
 
 
 # Everything regarding the state of a hand, so a player can look at this and chose a card to play
@@ -339,6 +340,17 @@ class SmearHandManager:
         if utils.is_trump(card, self.current_hand.trump) and (self.current_low == None or utils.is_less_than(card, self.current_low, self.current_hand.trump)):
             self.current_low = card
             self.current_low_id = player_id
+
+    def get_hint_from_computer(self, player_id):
+        playing_logic = CautiousTaker(debug=self.debug)
+        hand = self.players[player_id].hand
+        is_bidder = self.current_bidder == player_id
+        card_index = playing_logic.choose_card(self.current_hand, self.card_counting_info, hand, self.teams, is_bidder)
+        card_to_play = hand[card_index]
+        if self.debug:
+            print "Computer advises playing {} out of {}".format(str(card_to_play), " ".join(x.abbrev for x in hand))
+        return card_to_play
+
 
     # Allows play_trick to be called multiple times per trick, state should be saved
     def play_trick(self):

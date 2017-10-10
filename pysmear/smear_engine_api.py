@@ -384,3 +384,16 @@ class SmearEngineApi:
                         pinfo["username"] = player_name
             
         return hand_results
+
+
+    def get_hint_for_player(self, player_name):
+        player = None
+        for player_itr in self.smear.get_players():
+            if player_itr.name == player_name:
+                player = player_itr
+        if player == None:
+            print "Error: unable to find {}".format(player_name)
+            return None
+        card_to_play = self.smear.hand_manager.get_hint_from_computer(player.player_id)
+        return card_to_play
+
