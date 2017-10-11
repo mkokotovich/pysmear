@@ -6,6 +6,7 @@ from smear_utils import SmearUtils as utils
 from trick import Trick
 from card_counting import CardCounting
 from playing_logic import CautiousTaker
+from bidding_logic import BetterBidding
 
 
 # Everything regarding the state of a hand, so a player can look at this and chose a card to play
@@ -350,6 +351,17 @@ class SmearHandManager:
         if self.debug:
             print "Computer advises playing {} out of {}".format(str(card_to_play), " ".join(x.abbrev for x in hand))
         return card_to_play
+
+
+    def get_bid_hint_from_computer(self, player_id, dealer_id):
+        bidding_logic = BetterBidding(debug=self.debug)
+        hand = self.players[player_id].hand
+        bidding_logic.calculate_bid(self.current_hand, hand, force_two=(self.current_bidder==dealer_id))
+        bid = bidding_logic.declare_bid()
+        trump = bidding_logic.declare_trump()
+        if self.debug:
+            print "Computer advises bidding {} with {}".format(bid, trump)
+        return { "bid": bid, "trump": trump }
 
 
     # Allows play_trick to be called multiple times per trick, state should be saved

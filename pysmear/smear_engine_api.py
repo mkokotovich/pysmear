@@ -397,3 +397,15 @@ class SmearEngineApi:
         card_to_play = self.smear.hand_manager.get_hint_from_computer(player.player_id)
         return { "suit": card_to_play.suit, "value": card_to_play.value }
 
+
+    def get_bid_hint_for_player(self, player_name):
+        player = None
+        for player_itr in self.smear.get_players():
+            if player_itr.name == player_name:
+                player = player_itr
+        if player == None:
+            print "Error: unable to find {}".format(player_name)
+            return None
+        bid_hint = self.smear.hand_manager.get_bid_hint_from_computer(player.player_id, self.smear.dealer)
+        return bid_hint
+
