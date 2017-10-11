@@ -395,5 +395,5 @@ class SmearEngineApi:
             print "Error: unable to find {}".format(player_name)
             return None
         card_to_play = self.smear.hand_manager.get_hint_from_computer(player.player_id)
-        return card_to_play
+        return { "suit": card_to_play.suit, "value": card_to_play.value }
 
