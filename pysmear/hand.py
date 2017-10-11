@@ -344,6 +344,7 @@ class SmearHandManager:
 
     def get_hint_from_computer(self, player_id):
         playing_logic = CautiousTaker(debug=self.debug)
+        playing_logic.player_id = player_id
         hand = self.players[player_id].hand
         is_bidder = self.current_bidder == player_id
         card_index = playing_logic.choose_card(self.current_hand, self.card_counting_info, hand, self.teams, is_bidder)
