@@ -1,9 +1,12 @@
 import os
 import errno
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from cycler import cycler
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from cycler import cycler
+except:
+    pass
 
 class ScoreGraphManager():
     def __init__(self, score_to_play_to):
