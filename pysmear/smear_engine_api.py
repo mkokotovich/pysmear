@@ -56,8 +56,23 @@ class SmearEngineApi:
             self.smear.add_player(Player(username, debug=self.debug, playing_logic=CautiousTaker(debug=self.debug), bidding_logic=BetterBidding(debug=self.debug)))
 
 
+    def change_player_team(self, player_name, new_team_id):
+        player = None
+        for player_itr in self.smear.get_players():
+            if player_itr.name == player_name:
+                player = player_itr
+        if player == None:
+            print "Error: unable to find {}".format(player_name)
+            return None
+        player.team_id = new_team_id
+
+
     def all_players_added(self):
         return self.desired_players == len(self.smear.get_players())
+
+
+    def game_is_started(self):
+        return self.game_started
 
 
     def all_human_players_joined(self):

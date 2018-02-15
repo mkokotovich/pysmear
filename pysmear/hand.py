@@ -44,9 +44,10 @@ class SmearHand:
 
 # A hand is one deal, play until all cards are out, and tally the score iteration
 class SmearHandManager:
-    def __init__(self, players_dict, cards_to_deal=6, debug=False):
+    def __init__(self, players_dict, num_teams, cards_to_deal=6, debug=False):
         self.players = players_dict
         self.num_players = len(players_dict.values())
+        self.num_teams = num_teams
         self.cards_to_deal = cards_to_deal
         self.deck = pydealer.Deck(ranks=POKER_RANKS)
         if self.num_players * cards_to_deal > self.deck.size:
@@ -74,11 +75,11 @@ class SmearHandManager:
             self.players[i].reset()
 
     def add_players_to_teams(self):
+        # Add empty array for each team
+        for _ in range(0, self.num_teams):
+            self.teams.append([])
         for i in range(0, self.num_players):
             if self.players[i].team_id is not None:
-                # If we haven't added a list for this team, add an empty list
-                if len(self.teams) <= self.players[i].team_id:
-                    self.teams.append([])
                 # Add player_id to team
                 self.teams[self.players[i].team_id].append(self.players[i].player_id)
 

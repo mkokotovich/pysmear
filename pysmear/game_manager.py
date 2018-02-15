@@ -70,7 +70,7 @@ class SmearGameManager:
     def start_game(self):
         if self.dbm:
             self.dbm.add_game_to_db_for_first_time()
-        self.hand_manager = SmearHandManager(self.players, self.cards_to_deal, self.debug)
+        self.hand_manager = SmearHandManager(self.players, self.num_teams, self.cards_to_deal, self.debug)
         self.start_next_hand()
         self.save_score_graph([0]*self.num_players)
 
