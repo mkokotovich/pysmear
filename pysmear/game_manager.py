@@ -42,6 +42,28 @@ class SmearGameManager:
         for i in range(0, self.num_players):
             self.players[i].reset()
 
+    def reorder_players_by_team(self):
+        # The goal is to have players in order according to their teams.
+        # e.g. 0, 1, 2, 0, 1, 2
+        # e.g. 0, 1, 0, 1
+        # e.g. 0, 1, 2, 3, 0, 1, 2, 3
+        if self.num_teams == 0:
+            return
+        for i in range(0, self.num_players):
+            player = self.players[i]
+            correct_team_id = i % self.num_teams
+            if player.team_id == correct_team_id:
+                continue
+            # Otherwise, find someone to swap with
+            for j in range(i, self.num_players):
+                p2 = self.players[j]
+                if p2.team_id == correct_team_id:
+                    # Found someone to swap with
+                    self.players[i] = p2
+                    self.players[j] = player
+                    break
+
+
     def add_player(self, player, email=None):
         for existing_player in self.players.values():
             if existing_player.name == player.name:

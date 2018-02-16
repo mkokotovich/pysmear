@@ -67,6 +67,10 @@ class SmearEngineApi:
         player.team_id = new_team_id
 
 
+    def update_player_orders(self):
+        self.smear.reorder_players_by_team()
+
+
     def all_players_added(self):
         return self.desired_players == len(self.smear.get_players())
 
