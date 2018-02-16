@@ -60,7 +60,9 @@ class SmearGameManager:
                 if p2.team_id == correct_team_id:
                     # Found someone to swap with
                     self.players[i] = p2
+                    p2.player_id = i
                     self.players[j] = player
+                    player.player_id = j
                     break
 
 
