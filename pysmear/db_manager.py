@@ -218,6 +218,9 @@ class DbManager():
                 print "DB: Game is over, adding winners and results to game"
             self.current_game_record["winners"] = [ self.player_map[x] for x in overall_winners ]
             self.current_game_record["results"] = self.convert_usernames_to_object_ids(results)
+        if self.current_bid_record is None:
+            # I think this might happen if the dealer passes? Not sure, seeing it in tests
+            return
         self.current_bid_record["bid_trump"] = trump
         self.current_bid_record["points_won"] = points_won
         self.current_bid_record["points_lost"] = points_lost
