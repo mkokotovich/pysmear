@@ -1,6 +1,17 @@
+from functools import wraps
+from datetime import datetime
+
 from pymongo import MongoClient
 import pytz
-from datetime import datetime
+
+def swallow_exceptions(func):
+    @wraps(func)
+    def func_wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as ex:
+            print "Exception occurred while trying to use database: {}".format(str(ex))
+    return func_wrapper
 
 class DbManager():
 
@@ -19,6 +30,7 @@ class DbManager():
         self.connection_errors = False
 
 
+    @swallow_exceptions
     def init_game_record(self):
         game_record = {}
         game_record['date_added'] = None
@@ -31,6 +43,7 @@ class DbManager():
         return game_record
 
 
+    @swallow_exceptions
     def init_hand_record(self):
         hand_record = {}
         hand_record['date_added'] = None
@@ -41,6 +54,7 @@ class DbManager():
         return hand_record
 
 
+    @swallow_exceptions
     def init_bid_record(self):
         bid_record = {}
         bid_record['date_added'] = None
@@ -58,6 +72,7 @@ class DbManager():
         return bid_record
 
 
+    @swallow_exceptions
     def create_game(self, points_to_play_to, num_teams):
         if self.connection_errors:
             print "DB: skipping due to connection errors"
@@ -72,6 +87,7 @@ class DbManager():
         self.current_game_record['num_teams'] = num_teams
 
 
+    @swallow_exceptions
     def lookup_or_create_player(self, username, email):
         if self.connection_errors:
             print "DB: skipping due to connection errors"
@@ -118,6 +134,7 @@ class DbManager():
         return player_id
 
 
+    @swallow_exceptions
     def add_player(self, username, email=None):
         if self.connection_errors:
             print "DB: skipping due to connection errors"
@@ -127,6 +144,7 @@ class DbManager():
         self.player_map[username] = player_id
 
 
+    @swallow_exceptions
     def add_game_to_db_for_first_time(self):
         if self.connection_errors:
             print "DB: skipping due to connection errors"
@@ -141,6 +159,7 @@ class DbManager():
             print "DB: Adding game {} to database".format(self.game_id)
 
 
+    @swallow_exceptions
     def add_new_bid(self, username, bidders_hand, bid, high_bid, is_high_bid):
         if self.connection_errors:
             print "DB: skipping due to connection errors"
@@ -176,6 +195,7 @@ class DbManager():
             self.current_hand_record['high_bid'] = insert_result.inserted_id
 
 
+    @swallow_exceptions
     def create_new_hand(self):
         if self.connection_errors:
             print "DB: skipping due to connection errors"
@@ -185,6 +205,7 @@ class DbManager():
         self.current_hand_record['players'] = list(self.current_game_record['players'])
 
 
+    @swallow_exceptions
     def finalize_hand_creation(self, dealer_forced_two_set):
         if self.connection_errors:
             print "DB: skipping due to connection errors"
@@ -201,6 +222,7 @@ class DbManager():
             print "DB: Adding hand {} to database".format(insert_result.inserted_id)
 
 
+    @swallow_exceptions
     def convert_usernames_to_object_ids(self, results):
         for player_result in results:
             player_id = self.player_map[player_result["player"]]
@@ -208,6 +230,7 @@ class DbManager():
         return results
 
 
+    @swallow_exceptions
     def publish_hand_results(self, trump, points_won, points_lost, results, overall_winners):
         if self.connection_errors:
             print "DB: skipping due to connection errors"
