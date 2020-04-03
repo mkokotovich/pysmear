@@ -20,6 +20,7 @@ class SmearEngineApi:
         self.number_of_interactive_players = 0
         self.players_who_are_finished = []
         self.game_started = False
+        self._game_setting_teams = False
         self.game_finished = False
         self.static_dir =  None
         self.graph_prefix = None 
@@ -79,6 +80,15 @@ class SmearEngineApi:
         return self.game_started
 
 
+    def game_setting_teams(self):
+        allowed_to_set = False
+        if not self._game_setting_teams:
+            self._game_setting_teams = True
+            allowed_to_set = True
+
+        return allowed_to_set
+
+
     def all_human_players_joined(self):
         return self.desired_human_players == self.number_of_interactive_players
 
@@ -116,21 +126,20 @@ class SmearEngineApi:
 
 
     def start_game(self):
-        if self.game_started:
-            print "Error: Can not start a game already in progress"
-            return
         if self.debug:
             print "\n\n Starting game \n"
+            print "Number of players: " + str(len(self.smear.get_players()))
         if not self.all_players_added():
             print "Error: Can't start game before all players are added"
             return
-        if self.debug:
-            print "Number of players: " + str(len(self.smear.get_players()))
+        if self.game_started:
+            print "Error: Can not start a game already in progress"
+            return
+        self.game_started = True
         self.smear.reset_game()
         self.smear.start_game()
-        self.game_started = True
 
-    
+
     def continue_game(self):
         if self.game_started and not self.game_finished:
             self.game_finished = self.smear.play_game_async()
@@ -149,7 +158,7 @@ class SmearEngineApi:
         if self.debug:
             print "Finishing game"
 
-    
+
     def get_hand_for_player(self, player_name):
         player = None
         for player_itr in self.smear.get_players():
