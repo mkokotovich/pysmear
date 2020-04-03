@@ -116,6 +116,9 @@ class SmearEngineApi:
 
 
     def start_game(self):
+        if self.game_started:
+            print "Error: Can not start a game already in progress"
+            return
         if self.debug:
             print "\n\n Starting game \n"
         if not self.all_players_added():
