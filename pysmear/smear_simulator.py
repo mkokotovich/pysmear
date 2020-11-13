@@ -8,14 +8,11 @@ from game_manager import SmearGameManager
 from player import *
 from playing_logic import *
 from bidding_logic import *
-from db_manager import DbManager
 
 class SmearSimulator:
     def __init__(self, debug=False, num_teams=2, num_players=4, score_to_play_to=11, log_to_db=False, create_graphs=False):
         self.debug = debug
         self.dbm = None
-        if log_to_db:
-            self.dbm = DbManager(hostname="localhost", port="27017", debug=self.debug)
         static_dir=None
         graph_prefix=None
         if create_graphs:
