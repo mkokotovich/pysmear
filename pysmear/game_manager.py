@@ -373,6 +373,9 @@ class SmearGameManager:
             game_is_over = True
 
         # Save a new graph
-        self.save_score_graph(self.scores, game_is_over)
+        try:
+            self.save_score_graph(self.scores, game_is_over)
+        except Exception as e:
+            print "Unable to save graph: {}".format(e.strerror)
 
         return game_is_over
