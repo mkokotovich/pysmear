@@ -1,6 +1,6 @@
 import os
 import errno
-import urllib.parse
+import urllib
 try:
     import matplotlib
     matplotlib.use('Agg')
@@ -69,7 +69,7 @@ class ScoreGraphManager():
 
         # For each player, plot a line of their scores
         for i in range(0, len(player_names)):
-            safe_name = urllib.parse.quote(player_names[i])
+            safe_name = urllib.pathname2url(player_names[i])
             plt.plot(hands, scores_so_far[i], label=safe_name)
 
         # Add a legend of the player names
