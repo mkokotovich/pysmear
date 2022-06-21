@@ -3,7 +3,7 @@ funcsigs==1.0.2
 functools32==3.2.3.post2
 matplotlib==2.0.2
 mock==2.0.0
-numpy==1.12.1
+numpy==1.22.0
 pbr==1.10.0
 peewee==2.8.5
 pyparsing==2.2.0
